@@ -12,8 +12,8 @@ int main() {
 
     printf("Teste do servidor concluído com sucesso.\n");
 
-    close_connection(connfd);
-    close_socket(8080);
+    close_connection_server(connfd);
+    close_socket_server(8080);
 
     return 0;
 }

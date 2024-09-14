@@ -55,11 +55,11 @@ int create_connection_listen(int port){
 }
 
 //Fecha somente a conexão com o cliente
-int close_connection(int confd){
+int close_connection_server(int confd){
     close(confd);
 }
 
 //Fecha o socket
-int close_socket(int sockfd){
+int close_socket_server(int sockfd){
     close(sockfd);
 }
