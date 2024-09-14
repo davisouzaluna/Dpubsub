@@ -2,6 +2,7 @@
 #define CLIENT_H
 #include <stdint.h>
 #include <stddef.h>
+#include "transport/tcp/tcp_client.h"
 
 #define INITIAL_BUFFER_SIZE 1024 // Tamanho inicial do buffer de recebimento
 

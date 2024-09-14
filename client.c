@@ -1,5 +1,6 @@
+#include <stdio.h>
 #include "client.h"
-#include "../transport/tcp/tcp_client.h"
+
 
 /*
 Author: Davi Souza de Luna
@@ -102,6 +103,7 @@ int connect_client_TCP(client_t *client){
     }
     int client_socket = create_connection_to_server(client->config.ip_broker, client->config.port_broker);
     if(client_socket < 0){
+        fprintf(stderr, "Failed to connect to the server\n");
         return -1;
     }
     client->socket = client_socket;

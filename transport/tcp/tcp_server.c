@@ -7,8 +7,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-//#define SERVER_PORT 8080  // Porta estática
-
 int create_connection_listen(int port){
 
     int sockfd, connfd;
