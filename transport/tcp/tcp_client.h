@@ -1,4 +1,5 @@
 // tcp_client.h
+#include <stddef.h>
 #ifndef TCP_CLIENT_H
 #define TCP_CLIENT_H
 

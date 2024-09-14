@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -52,6 +53,7 @@ int create_connection_listen(int port){
     }
 
     printf("Cliente conectado!\n");
+    return connfd;// Retorna o descritor de arquivo da conexão
 }
 
 // Função que gerencia o buffer de forma dinâmica(pra evitar o estouro de buffer)
