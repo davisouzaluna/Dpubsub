@@ -26,6 +26,8 @@ PINGRESP	0x0D	Responde ao pacote PINGREQ; indica que o broker está conectado e 
 DISCONNECT	0x0E	Solicita a desconexão do cliente do broker.
 
 
+devera existir um enum que ira conter todos os pacotes e os bits identificadores de cada um
+
 portanto cada pacote devera ter a funcao:
 
 serialize_<pacote>(); //adiciona o bit idewntificador no pacote
