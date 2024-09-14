@@ -54,6 +54,83 @@ int create_connection_listen(int port){
     printf("Cliente conectado!\n");
 }
 
+// Função que gerencia o buffer de forma dinâmica(pra evitar o estouro de buffer)
+void *manage_buffer(void *buffer, size_t *buffer_size, size_t required_size) {
+    // Verifica se o buffer precisa ser expandido
+    if (required_size > *buffer_size) {
+        printf("Expanding buffer from %zu to %zu bytes\n", *buffer_size, required_size);
+        void *new_buffer = realloc(buffer, required_size);  // Expande o buffer
+        if (new_buffer == NULL) {
+            perror("Error reallocating memory");
+            free(buffer);
+            exit(EXIT_FAILURE);
+        }
+        buffer = new_buffer;
+        *buffer_size = required_size; // Atualiza o tamanho do buffer
+    }
+    return buffer;
+}
+
+/* Função que recebe os dados e ajusta o buffer dinamicamente. Não é necessário fornecer um buffer.
+Essa função aloca memória para o buffer e libera a memória quando termina.
+Com relação ao desempenho, essa função é menos eficiente do que receber os dados em um buffer estático.
+Utilize essa função quando não souber o tamanho dos dados a serem recebidos, ou como debug.
+REITERANDO, não é recomendado para uso em produção, pois alocar e liberar memória é custoso.
+*/
+void receive_bytes_with_dynamic_buffer(int connfd) {
+    size_t buffer_size = INITIAL_BUFFER_SIZE;
+    void *buffer = malloc(buffer_size);
+    if (buffer == NULL) {
+        perror("Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t total_bytes_received = 0;
+    int bytes_received;
+    size_t chunk_size = 512;  // Tamanho do bloco de recepção
+
+    while (1) {
+        // Verifica se o buffer é grande o suficiente para o próximo chunk
+        buffer = manage_buffer(buffer, &buffer_size, total_bytes_received + chunk_size);
+
+        // Recebe os dados
+        bytes_received = recv(connfd, (char *)buffer + total_bytes_received, chunk_size, 0);
+
+        if (bytes_received < 0) {
+            perror("Error receiving bytes");
+            break;
+        } else if (bytes_received == 0) {
+            printf("Client disconnected\n");
+            break;
+        }
+
+        total_bytes_received += bytes_received;
+        printf("Received %d bytes, total received: %zu\n", bytes_received, total_bytes_received);
+    }
+
+    // Processar os dados recebidos(debug)
+    printf("Total data received: %zu bytes\n", total_bytes_received);
+
+    // Liberar a memória do buffer
+    free(buffer);
+}
+
+/*
+Os dados recebidos do cliente são armazenados no buffer fornecido.
+O tamanho do buffer é fornecido como argumento.
+LEMBRE-SE: O buffer deve ser grande o suficiente para armazenar os dados recebidos.
+*/
+void receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffer_size) {
+    int bytes_received = recv(connfd, buffer, buffer_size, 0);
+    if (bytes_received < 0) {
+        perror("Error receiving bytes");
+    } else if (bytes_received == 0) {
+        printf("Client disconnected\n");
+    } else {
+        printf("Received %d bytes from client\n", bytes_received);
+    }
+}
+
 //Fecha somente a conexão com o cliente
 int close_connection_server(int confd){
     close(confd);

@@ -65,7 +65,20 @@ int create_connection_to_server(char *addr, int port) {
     return sockfd; // Retorna o socket fd para uso posterior
 }
 
+/*Usa o metodo send para enviar os dados para o servidor.
+O dado para qualquer tipo de dado, e data_len é o tamanho do dado.
+*/
+void send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
+    int bytes_sent = send(sockfd, data, data_len, 0);
+    if (bytes_sent < 0) {
+        perror("Error sending bytes");
+    } else {
+        printf("Sent %d bytes to server\n", bytes_sent);
+    }
+}
+
 // Fecha a conexão
 void close_connection_client(int sockfd) {
     close(sockfd);
 }
+
