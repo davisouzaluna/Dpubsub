@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define INITIAL_BUFFER_SIZE 1024 // Tamanho inicial do buffer de recebimento
+
 /*
 
 //configurações do cliente. Aqui contem as configurações pertinentes para a conexao a nivel de aplicação
@@ -99,7 +101,7 @@ typedef struct {
 }message_t;
 
 // Create a client
-int create_client(client_t *client, client_config_t *config);
+int create_client(client_t *client, client_config_t *config, size_t buffer_size);
 
 // Destroy a client, free memory and close socket
 int destroy_client(client_t *client);
