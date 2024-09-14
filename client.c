@@ -1,4 +1,5 @@
 #include "client.h"
+#include "../transport/tcp/tcp_client.h"
 
 /*
 Author: Davi Souza de Luna
@@ -31,36 +32,37 @@ typedef struct {
 }message_t;
 */
 
-/*
-Function to create a client. It receives a client_t pointer, a client_config_t pointer and a buffer size. If the buffer size is not provided, it will use the default size defined 
-in the macro INITIAL_BUFFER_SIZE.It returns 0 if the client is created successfully, -1 otherwise.
-*/
+
 int create_client(client_t *client, client_config_t *config, size_t buffer_size){
     if (!client || !config) {
         return -1; // Verifica se os ponteiros são válidos
     }
 
-    client->config.client_id = config->client_id;
-    if(client->config.client_id = NULL){
+    client->config.client_id = strdup(config->client_id); // Aloca memória para a string e copia o conteúdo, pois a string original pode ser liberada
+    if(client->config.client_id == NULL){
+        printf("Error allocating memory for client_id\n");
         return -1;
     }
     client->config.keep_alive = config->keep_alive;
 
     client->config.ip_broker = strdup(config->ip_broker); // Aloca memória para a string e copia o conteúdo, pois a string original pode ser liberada
-    if(client->config.ip_broker = NULL){
-        free(client->config.ip_broker);
+    if(client->config.ip_broker == NULL){
+        free(client->config.client_id);
+        printf("Error allocating memory for ip_broker\n");
         return -1;
     }
 
     client->config.port_broker = config->port_broker;
     client->config.default_qos = config->default_qos;
 
-    if(buffer_size == NULL){
+    if(buffer_size == 0){
         buffer_size = INITIAL_BUFFER_SIZE; // Define o tamanho do buffer padrao
     }
     client->buffer_size = buffer_size; // Define o tamanho do buffer
     client->buffer = (char*)malloc(buffer_size); // Aloca memória para o buffer
-    if(client->buffer = NULL){
+    if(client->buffer == NULL){
+        free(client->config.ip_broker);
+        free(client->config.client_id);
         printf("Error allocating memory for buffer\n");
         return -1;
     }
@@ -73,15 +75,49 @@ int create_client(client_t *client, client_config_t *config, size_t buffer_size)
 */
 
 int destroy_client(client_t *client){
+//Os ifs verificam se a condicao realmente existe, para nao consumir tempo de processamento
     if(!client){
         return -1;
     }
     if(client->socket !=-1){
         close(client->socket);
+        client->socket = -1; // Marca o socket como fechado atribuindo o valor -1 ao descritor
     }
 
     free(client->buffer);
-    free(client->config.ip_broker);
-    free(client->config.client_id);
+    if (client->config.ip_broker) {
+        free(client->config.ip_broker);
+        client->config.ip_broker = NULL; // Marca ip_broker como liberado
+    }
+    if (client->config.client_id) {
+        free(client->config.client_id);
+        client->config.client_id = NULL; // Marca client_id como liberado
+    }
     return 0;
 }
+
+int connect_client_TCP(client_t *client){
+    if(!client){
+        return -1;
+    }
+    int client_socket = create_connection_to_server(client->config.ip_broker, client->config.port_broker);
+    if(client_socket < 0){
+        return -1;
+    }
+    client->socket = client_socket;
+    return 0;
+};
+
+int connect_client(client_t *client, protocol_t protocol){
+    if (!client) {
+        return -1; // Verifica se o ponteiro é válido
+    }
+    switch(protocol){
+        case PROTOCOL_TCP:
+            return connect_client_TCP(client);
+        default:
+            return -1; // Unknown protocol
+    }
+    return -1; //fail if the protocol is not defined
+};
+

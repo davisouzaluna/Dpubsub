@@ -78,6 +78,10 @@ int get_config(struct client *client, struct client_config *config); // Obtém a
 
 */
 
+typedef enum {
+    PROTOCOL_TCP
+} protocol_t;
+
 typedef struct {
     char *client_id;       // Identificador do cliente (Client ID)
     uint16_t keep_alive;   // Tempo de keep-alive em segundos
@@ -100,14 +104,24 @@ typedef struct {
     uint8_t retain; // Retain. Inicialmente não será utilizado. Portanto será 0. Quando for utilizar, altere para 1
 }message_t;
 
-// Create a client
+/*
+Function to create a client. It receives a client_t pointer, a client_config_t pointer and a buffer size. If the buffer size is not provided, it will use the default size defined 
+in the macro INITIAL_BUFFER_SIZE.It returns 0 if the client is created successfully, -1 otherwise.
+*/
 int create_client(client_t *client, client_config_t *config, size_t buffer_size);
 
 // Destroy a client, free memory and close socket
 int destroy_client(client_t *client);
 
-// Connect to the broker
-int connect_client(client_t *client);
+/* Connect to the broker using TCP. The client must be created before connecting. Returns 0 if the connection is successful, -1 otherwise.
+The TCP connection is made with the create_connection_to_server function, which receives the broker's IP and port. She is
+located in the file /transport/tcp/tcp_client.h
+*/
+int connect_client_TCP(client_t *client);
+
+/* Connect to the broker. The client must be created before connecting. The protocol is defined in enum protocol_t. It returns 0 if the connection is successful, -1 otherwise.
+*/
+int connect_client(client_t *client, protocol_t protocol);
 
 // Disconnect from the broker
 int disconnect_client(client_t *client);
