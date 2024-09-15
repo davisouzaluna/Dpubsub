@@ -151,3 +151,46 @@ int disconnect_client(client_t *client, protocol_t protocol){
     }
 };
 
+int send_message_TCP(client_t *client, message_t *msg){
+    if(!client || !msg){
+        return -1;
+    }
+    if(client->socket < 0){
+        return -1;
+    }
+
+    //Por enquanto ele somente envia a struct message_t
+    int bytes_sent = send_bytes_to_server(client->socket, msg, sizeof(msg));
+    if(bytes_sent < 0){
+        fprintf(stderr, "Failed to send message\n");
+        return -1;
+    }
+    return 0;
+};
+
+int send_message(client_t *client, message_t *msg, protocol_t protocol){
+    if(!client || !msg){
+        return -1;
+    }
+    switch(protocol){
+        case PROTOCOL_TCP:
+            return send_message_TCP(client, msg);
+        default:
+            return -1; // Unknown protocol
+    }
+}
+
+free_message(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    if(msg->topic){
+        free(msg->topic);
+        msg->topic = NULL;
+    }
+    if(msg->payload){
+        free(msg->payload);
+        msg->payload = NULL;
+    }
+    return 0;
+}

@@ -24,7 +24,7 @@ void receive_bytes_from_client(int connfd, void *buffer, size_t buffer_size);
 void receive_bytes_with_dynamic_buffer(int connfd);
 
 // Função que recebe os dados e armazena em um buffer estático. O buffer deve ser fornecido pelo usuário.
-void receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffer_size) ;
+int receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffer_size) ;
 
 /* Função para enviar bytes ao cliente. Ela e semelhante a funcao de envio de tcp_client. Todas elas enviam pelo mesmo metodo de envio(funcao send do tcp)
  **AINDA NAO TESTADA**  */

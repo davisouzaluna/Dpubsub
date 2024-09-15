@@ -127,14 +127,16 @@ Os dados recebidos do cliente são armazenados no buffer fornecido.
 O tamanho do buffer é fornecido como argumento.
 LEMBRE-SE: O buffer deve ser grande o suficiente para armazenar os dados recebidos.
 */
-void receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffer_size) {
+int receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffer_size) {
     int bytes_received = recv(connfd, buffer, buffer_size, 0);
     if (bytes_received < 0) {
         perror("Error receiving bytes");
     } else if (bytes_received == 0) {
         printf("Client disconnected\n");
     } else {
+        //Posteriormente e importante apagar esse printf
         printf("Received %d bytes from client\n", bytes_received);
+        return bytes_received;
     }
 }
 

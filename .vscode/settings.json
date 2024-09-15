@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stddef.h": "c",
-        "tcp_client.h": "c"
+        "tcp_client.h": "c",
+        "string.h": "c"
     }
 }

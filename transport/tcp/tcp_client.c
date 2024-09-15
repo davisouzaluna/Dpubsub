@@ -62,7 +62,7 @@ int create_connection_to_server(const char *addr, int port) {
 /*Usa o metodo send para enviar os dados para o servidor.
 O dado para qualquer tipo de dado, e data_len é o tamanho do dado.
 */
-void send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
+int send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
     size_t total_bytes_sent = 0;
     const char *data_ptr = data;
 
@@ -76,6 +76,7 @@ void send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
     }
 
     printf("Sent %zu bytes to server\n", total_bytes_sent);
+    return 0;
 }
 // Fecha a conexão
 int close_connection_client(int sockfd) {

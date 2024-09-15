@@ -138,14 +138,20 @@ int disconnect_client_TCP(client_t *client);
 // Disconnect from the broker
 int disconnect_client(client_t *client, protocol_t protocol);
 
-// Send a message to the broker
-int send_message(client_t *client, message_t *msg);
+// Send a message to the broker using TCP.
+int send_message_TCP(client_t *client, message_t *msg);
 
+// Send a message to the broker. The client must be connected before sending the message. It returns 0 if the message is sent successfully, -1 otherwise.
+int send_message(client_t *client, message_t *msg, protocol_t protocol);
+
+// Free the message. It is necessary to free the memory allocated for the message
+int free_message(message_t *msg);
 // Receive a message from the broker
 int receive_message(client_t *client, message_t *msg);
 
 // Subscribe to a topic
 int subscribe_topic(client_t *client, char *topic);
+
 
 // Unsubscribe from a topic
 int unsubscribe_topic(client_t *client, char *topic);
