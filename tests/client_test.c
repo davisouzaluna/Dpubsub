@@ -30,6 +30,13 @@ int main() {
     }
     printf("Client connected successfully\n");
 
+    // Testar a desconexão do broker usando TCP
+    if (disconnect_client(&client, PROTOCOL_TCP) != 0) {
+        fprintf(stderr, "Failed to disconnect client\n");
+        destroy_client(&client); // Certifique-se de liberar os recursos em caso de falha na desconexão
+        return EXIT_FAILURE;
+    }
+    printf("Client disconnected successfully\n");
     // Testar a destruição do cliente
     if (destroy_client(&client) != 0) {
         fprintf(stderr, "Failed to destroy client\n");

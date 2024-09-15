@@ -2,6 +2,9 @@
 #define CLIENT_H
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include "transport/tcp/tcp_client.h"
 
 #define INITIAL_BUFFER_SIZE 1024 // Tamanho inicial do buffer de recebimento
@@ -79,6 +82,9 @@ int get_config(struct client *client, struct client_config *config); // Obtém a
 
 */
 
+/*
+Enum to define the protocol used to connect to the broker
+*/
 typedef enum {
     PROTOCOL_TCP
 } protocol_t;
@@ -124,8 +130,13 @@ int connect_client_TCP(client_t *client);
 */
 int connect_client(client_t *client, protocol_t protocol);
 
+/*
+Disconnect from the broker using TCP protocol. The client must be connected before disconnecting. Returns 0 if the disconnection is successful, -1 otherwise.
+*/
+int disconnect_client_TCP(client_t *client);
+
 // Disconnect from the broker
-int disconnect_client(client_t *client);
+int disconnect_client(client_t *client, protocol_t protocol);
 
 // Send a message to the broker
 int send_message(client_t *client, message_t *msg);

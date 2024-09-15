@@ -28,22 +28,15 @@ int create_connection_to_server(const char *addr, int port) {
     client_addr.sin_addr.s_addr = INADDR_ANY;
     client_addr.sin_port = htons(0);  // Porta dinâmica escolhida pelo SO
 
-    // Faz o bind para a porta dinâmica
-    if (bind(sockfd, (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0) {
-        perror("Error when binding the client");
-        close(sockfd);
-        return -1; // Retorna erro em vez de sair
-    }
-
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);  
 
     // Converte o IP do servidor
     if (inet_pton(AF_INET, addr, &serv_addr.sin_addr) <= 0) {
-        perror("Error converting server IP");
+        perror("Invalid address or address not supported");
         close(sockfd);
-        return -1; // Retorna erro em vez de sair
+        return -1; 
     }
 
     // Conecta ao servidor
@@ -70,16 +63,26 @@ int create_connection_to_server(const char *addr, int port) {
 O dado para qualquer tipo de dado, e data_len é o tamanho do dado.
 */
 void send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
-    int bytes_sent = send(sockfd, data, data_len, 0);
-    if (bytes_sent < 0) {
-        perror("Error sending bytes");
-    } else {
-        printf("Sent %d bytes to server\n", bytes_sent);
-    }
-}
+    size_t total_bytes_sent = 0;
+    const char *data_ptr = data;
 
+    while (total_bytes_sent < data_len) {
+        int bytes_sent = send(sockfd, data_ptr + total_bytes_sent, data_len - total_bytes_sent, 0);
+        if (bytes_sent < 0) {
+            perror("Error sending bytes");
+            break;
+        }
+        total_bytes_sent += bytes_sent;
+    }
+
+    printf("Sent %zu bytes to server\n", total_bytes_sent);
+}
 // Fecha a conexão
-void close_connection_client(int sockfd) {
-    close(sockfd);
+int close_connection_client(int sockfd) {
+    if(close(sockfd) < 0) {
+        perror("Error closing connection");
+        return -1;
+    }
+    return 0;
 }
 

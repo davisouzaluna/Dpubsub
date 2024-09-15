@@ -107,6 +107,7 @@ int connect_client_TCP(client_t *client){
         return -1;
     }
     client->socket = client_socket;
+    
     return 0;
 };
 
@@ -121,5 +122,32 @@ int connect_client(client_t *client, protocol_t protocol){
             return -1; // Unknown protocol
     }
     return -1; //fail if the protocol is not defined
+};
+
+int disconnect_client_TCP(client_t *client){
+    if(!client){
+        return -1;
+    }
+    if (client->socket < 0) {
+        return -1; // Verifica se o socket está conectado
+        printf("socket ja desconectado\n");
+    }
+    int close_connection = close_connection_client(client->socket);
+    if(close_connection < 0){
+        fprintf(stderr, "Failed to disconnect client\n");
+        return -1;
+    }
+};
+
+int disconnect_client(client_t *client, protocol_t protocol){
+    if (!client) {
+        return -1; // Verifica se o ponteiro é válido
+    }
+    switch(protocol){
+        case PROTOCOL_TCP:
+            return disconnect_client_TCP(client);
+        default:
+            return -1; // Unknown protocol
+    }
 };
 
