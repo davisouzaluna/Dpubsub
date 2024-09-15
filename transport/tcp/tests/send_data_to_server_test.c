@@ -6,8 +6,8 @@
 #include <netinet/in.h>
 #include <time.h>
 
-#define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 8080
+#define SERVER_IP "172.18.0.1"
+#define SERVER_PORT 9595
 
 // Inclua o código do cliente TCP aqui
 #include "tcp_client.h"

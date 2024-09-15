@@ -1,21 +1,20 @@
-// test_server.c
 #include "tcp_server.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 int main() {
-    int port;
-    port = 9090;
-    int connfd = create_connection_listen(port);
-    if (connfd < 0) {
-        fprintf(stderr, "Erro ao criar conexão de escuta\n");
-        exit(EXIT_FAILURE);
-    }
+    int port = 9090;
+    int sockfd = create_and_listen_server(port);
+    int connfd = accept_client(sockfd);
 
-    printf("Teste do servidor concluído com sucesso.\n");
+    
 
+    // Fecha a conexão e o socket
     close_connection_server(connfd);
-    close_socket_server(port);
+    close_socket_server(sockfd);
+
 
     return 0;
 }

@@ -12,7 +12,7 @@ int main() {
     config.client_id = "test_client";
     config.keep_alive = 60;
     config.ip_broker = "127.0.0.1"; // IP de teste
-    config.port_broker = 9090; // Porta padrão para MQTT
+    config.port_broker = 9090; // Porta do servidor de teste: ../transport/tcp/tests/server.c
     config.default_qos = 1;
 
     // Testar a criação do cliente

@@ -11,7 +11,7 @@
 #define SERVER_PORT 8080       
 
 // Cria uma conexão com o servidor
-int create_connection_to_server(char *addr, int port) {
+int create_connection_to_server(const char *addr, int port) {
     int sockfd;
     struct sockaddr_in serv_addr, client_addr;
     socklen_t client_len = sizeof(client_addr);

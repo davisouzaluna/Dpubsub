@@ -7,33 +7,35 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-int create_connection_listen(int port){
 
-    int sockfd, connfd;
-    struct sockaddr_in serv_addr, client_addr;
-    socklen_t client_len = sizeof(client_addr);
+int create_and_listen_server(int port) {
+    int sockfd;
+    struct sockaddr_in serv_addr;
+    int optval = 1;
 
-    // Cria o socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("Erro ao criar o socket");
         exit(EXIT_FAILURE);
     }
 
-    // Inicializa a estrutura de endereço
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+        perror("Erro ao configurar socket para reutilização de endereço");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(port);  // Porta estática
+    serv_addr.sin_port = htons(port);
 
-    // Faz o bind
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Erro ao fazer o bind");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
-    // Escuta por conexões
     if (listen(sockfd, 5) < 0) {
         perror("Erro ao escutar");
         close(sockfd);
@@ -41,19 +43,24 @@ int create_connection_listen(int port){
     }
 
     printf("Servidor ouvindo na porta %d\n", port);
+    return sockfd;
+}
 
-    // Aceita uma conexão
+// Aceita uma conexão do cliente. A funcao retorna o descritor do socket da conexao
+int accept_client(int sockfd) {
+    int connfd;
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+
     connfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_len);
     if (connfd < 0) {
         perror("Erro ao aceitar a conexão");
-        close(sockfd);
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     printf("Cliente conectado!\n");
-    return connfd;// Retorna o descritor de arquivo da conexão
+    return connfd;
 }
-
 // Função que gerencia o buffer de forma dinâmica(pra evitar o estouro de buffer)
 void *manage_buffer(void *buffer, size_t *buffer_size, size_t required_size) {
     // Verifica se o buffer precisa ser expandido
@@ -131,8 +138,7 @@ void receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buff
     }
 }
 
-// Função para enviar bytes ao cliente. Ela e semelhante a funcao de envio de tcp_client. Todas elas enviam pelo mesmo metodo de envio(funcao send do tcp)
-/* AINDA NAO TESTADA*/
+
 void send_bytes_to_client(int connfd, const void *buffer, size_t buffer_size) {
     ssize_t bytes_sent = send(connfd, buffer, buffer_size, 0);
     if (bytes_sent < 0) {
@@ -142,12 +148,28 @@ void send_bytes_to_client(int connfd, const void *buffer, size_t buffer_size) {
     }
 }
 
-//Fecha somente a conexão com o cliente
-int close_connection_server(int confd){
-    close(confd);
+int close_connection_server(int connfd) {
+    if (close(connfd) < 0) {
+        perror("Erro ao fechar a conexão com o cliente");
+        return -1;  // Retorna -1 em caso de erro
+    }
+    return 0;  // Retorna 0 em caso de sucesso
 }
 
-//Fecha o socket
-int close_socket_server(int sockfd){
-    close(sockfd);
+
+int close_socket_server(int sockfd) {
+    if (close(sockfd) < 0) {
+        perror("Erro ao fechar o socket do servidor");
+        return -1;
+    }
+    return 0;
+}
+
+
+int close_resource(int fd) {
+    if (close(fd) < 0) {
+        perror("Erro ao fechar o recurso");
+        return -1;
+    }
+    return 0;
 }
