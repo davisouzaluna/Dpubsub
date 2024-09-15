@@ -180,7 +180,7 @@ int send_message(client_t *client, message_t *msg, protocol_t protocol){
     }
 }
 
-free_message(message_t *msg){
+int free_message(message_t *msg){
     if(!msg){
         return -1;
     }
@@ -193,4 +193,48 @@ free_message(message_t *msg){
         msg->payload = NULL;
     }
     return 0;
+}
+
+int receive_message_TCP(client_t *client){
+    if(!client){
+        return -1;
+    }
+    if(client->socket < 0){
+        return -1;
+    }
+
+    //caso o buffer nao tenha sido alocado(primeiro vem o tamanho do buffer)
+    if(client->buffer_size == 0){
+        client->buffer_size = INITIAL_BUFFER_SIZE; // Define o tamanho do buffer padrao
+    }
+    //caso o buffer nao esteja alocado
+    if(client->buffer == NULL){
+        client->buffer = (char*)malloc(sizeof(char)*client->buffer_size);
+        if(client->buffer == NULL){
+            fprintf(stderr, "Failed to allocate memory for buffer\n");
+            return -1;
+        }
+    }
+   
+    int bytes_received = receive_bytes_from_server_static_buff(client->socket, client->buffer, client->buffer_size);
+    if(bytes_received < 0){
+        fprintf(stderr, "Failed to receive message\n");
+        return -1;
+    }
+    return 0;
+}
+
+int receive_message(client_t *client, protocol_t protocol){
+    if(!client){
+        return -1;
+    }
+    if(client->socket < 0){
+        return -1;
+    }
+    switch(protocol){
+        case PROTOCOL_TCP:
+            return receive_message_TCP(client);
+        default:
+            return -1; // Unknown protocol
+    }
 }

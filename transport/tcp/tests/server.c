@@ -22,6 +22,11 @@ int main() {
     } else {
         printf("Error receiving data from client.\n");
     }
+    
+    int bytes_sent = send_bytes_to_client(connfd, buffer, bytes_received);
+    if (bytes_sent < 0) {
+        perror("Error sending data to client");
+    }
     // Fecha a conexão e o socket
     close_connection_server(connfd);
     close_socket_server(sockfd);

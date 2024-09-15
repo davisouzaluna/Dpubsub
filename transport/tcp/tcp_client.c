@@ -78,6 +78,22 @@ int send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
     printf("Sent %zu bytes to server\n", total_bytes_sent);
     return 0;
 }
+
+int receive_bytes_from_server_static_buff(int sockfd, void *buffer, size_t buffer_size) {
+    // Recebe dados do cliente
+    ssize_t bytes_received = recv(sockfd, buffer, buffer_size, 0);
+    if (bytes_received < 0) {
+        perror("Error receiving bytes");
+        return -1; // Retorna -1 em caso de erro
+    } else if (bytes_received == 0) {
+        printf("Client disconnected\n");
+        return 0; // Retorna 0 quando o cliente se desconectar
+    } else {
+        // remover esse printf se não for mais necessário
+        printf("Received %ld bytes from client\n", (long)bytes_received);
+        return (int)bytes_received; // Retorna o número de bytes recebidos
+    }
+}
 // Fecha a conexão
 int close_connection_client(int sockfd) {
     if(close(sockfd) < 0) {

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "client.h"
-#include "../../transport/tcp/tcp_client.h"
 
 int main() {
     client_t client;
@@ -29,6 +28,28 @@ int main() {
         return EXIT_FAILURE;
     }
     printf("Client connected successfully\n");
+
+    // Testar o envio de dados para o broker
+    char *msg = "Hello, server!";
+    message_t message;
+    message.topic = "test_topic";
+    message.payload = msg;
+    message.qos = 1;
+    message.retain = 0;
+    if (send_message(&client, &message, PROTOCOL_TCP) != 0) {
+        fprintf(stderr, "Failed to send message\n");
+        disconnect_client(&client, PROTOCOL_TCP); // Certifique-se de desconectar o cliente em caso de falha no envio da mensagem
+        destroy_client(&client); // Certifique-se de liberar os recursos em caso de falha no envio da mensagem
+        return EXIT_FAILURE;
+    }
+
+    //testar o recebimento de dados do broker
+    if (receive_message(&client, PROTOCOL_TCP) != 0) {
+        fprintf(stderr, "Failed to receive message\n");
+        disconnect_client(&client, PROTOCOL_TCP); // Certifique-se de desconectar o cliente em caso de falha no recebimento da mensagem
+        destroy_client(&client); // Certifique-se de liberar os recursos em caso de falha no recebimento da mensagem
+        return EXIT_FAILURE;
+    }
 
     // Testar a desconexão do broker usando TCP
     if (disconnect_client(&client, PROTOCOL_TCP) != 0) {

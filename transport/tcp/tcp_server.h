@@ -28,7 +28,7 @@ int receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffe
 
 /* Função para enviar bytes ao cliente. Ela e semelhante a funcao de envio de tcp_client. Todas elas enviam pelo mesmo metodo de envio(funcao send do tcp)
  **AINDA NAO TESTADA**  */
-void send_bytes_to_client(int connfd, const void *buffer, size_t buffer_size);//para uma possivel resposta ao cliente
+int send_bytes_to_client(int connfd, const void *buffer, size_t buffer_size);//para uma possivel resposta ao cliente
 
 // Fecha um recurso/Debug
 int close_resource(int fd);

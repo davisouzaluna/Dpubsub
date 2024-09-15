@@ -146,8 +146,12 @@ int send_message(client_t *client, message_t *msg, protocol_t protocol);
 
 // Free the message. It is necessary to free the memory allocated for the message
 int free_message(message_t *msg);
+
+// Receive a message from the broker using TCP
+int receive_message_TCP(client_t *client);
+
 // Receive a message from the broker
-int receive_message(client_t *client, message_t *msg);
+int receive_message(client_t *client, protocol_t protocol);
 
 // Subscribe to a topic
 int subscribe_topic(client_t *client, char *topic);

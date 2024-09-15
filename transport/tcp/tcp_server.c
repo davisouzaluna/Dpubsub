@@ -141,13 +141,15 @@ int receive_bytes_from_client_static_buff(int connfd, void *buffer, size_t buffe
 }
 
 
-void send_bytes_to_client(int connfd, const void *buffer, size_t buffer_size) {
+int send_bytes_to_client(int connfd, const void *buffer, size_t buffer_size) {
     ssize_t bytes_sent = send(connfd, buffer, buffer_size, 0);
     if (bytes_sent < 0) {
         perror("Error sending bytes to client");
     } else {
         printf("Sent %zu bytes to client\n", (size_t)bytes_sent);
     }
+    //return bytes_sent;
+    return 0;
 }
 
 int close_connection_server(int connfd) {
