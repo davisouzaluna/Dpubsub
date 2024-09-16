@@ -10,79 +10,6 @@
 #define INITIAL_BUFFER_SIZE 1024 // Tamanho inicial do buffer de recebimento
 
 /*
-
-//configurações do cliente. Aqui contem as configurações pertinentes para a conexao a nivel de aplicação
-struct client_config{
-    id;
-    tempo de conexao;
-    keep_alive;
-    ip_broker;
-    port_broker;
-    default_qos;
-}
-
-//estrutura do cliente. Aqui contem as configuracoes pertinentes para a conexao a nivel de transporte
-struct client{
-    socket;
-    buffer;
-    buffer_size;
-
-    client_config config; // struct client_config
-}
-
-//estrutura da mensagem. Aqui contem as informacoes da mensagem a ser enviada
-struct message{
-    topic;
-    payload;
-    qos;
-    retain;
-}
-
-
-// Funções básicas para uma comunicação 
-int create_client(struct client *client, struct client_config *config);
-int destroy_client(struct client *client); // Fecha o socket e libera a memória 
-int connect_client(struct client *client); // Conecta o cliente ao broker
-int disconnect_client(struct client *client); // Desconecta o cliente do broker
-int send_message(struct client *client, struct message *msg); // Envia uma mensagem ao broker. O cliente deve estar conectado. Aqui seria feito a serialização da mensagem e enviada a nível de transporte 
-int receive_message(struct client *client, struct message *msg); // Recebe uma mensagem do broker. O cliente deve estar conectado. Aqui seria feito a desserialização da mensagem recebida a nível de transporte(um subscribe por exemplo).
-int subscribe_topic(struct client *client, char *topic); // Inscreve o cliente em um tópico
-int unsubscribe_topic(struct client *client, char *topic); // Cancela a inscrição do cliente em um tópico
-int keep_alive(struct client *client); // Envia um PINGREQ ao broker. Seria pra indicar que o cliente ainda está ativo. O broker deve responder com PINGRESP
-
-//getters e setters
-
-int set_qos(struct client *client, int qos); // Define o QoS padrão do cliente
-int get_qos(struct client *client, int *qos); // Obtém o QoS padrão do cliente
-
-int set_keep_alive(struct client *client, int keep_alive); // Define o tempo de keep alive do cliente
-int get_keep_alive(client_t *client, uint16_t *keep_alive); // Obtém o tempo de keep alive do cliente
-
-int set_broker(struct client *client, char *ip, int port); // Define o endereço do broker
-int get_broker(struct *client, char *ip, int *port); // Obtém o endereço do broker
-
-int set_socket(struct client *client, int socket); // Define o socket do cliente
-int get_socket(struct client *client, int *socket); // Obtém o socket do cliente
-
-int set_id(struct client *client, char *id); // Define o ID do cliente
-int get_id(struct client *client, char *id); // Obtém o ID do cliente
-
-int set_buffer_size(struct client *client, size_t buffer_size); // Define o tamanho do buffer
-int get_buffer_size(struct client *client, size_t *buffer_size); // Obtém o tamanho do buffer
-
-int set_buffer(struct client *client, void *buffer); // Define o buffer
-int get_buffer(struct client *client, void *buffer); // Obtém o buffer
-
-int set_config(struct client *client, struct client_config *config); // Define a configuração do cliente
-int get_config(struct client *client, struct client_config *config); // Obtém a configuração do cliente
-
-
-
-
-
-*/
-
-/*
 Enum to define the protocol used to connect to the broker
 */
 typedef enum {
@@ -172,48 +99,56 @@ Getters and Setters functions for the client structure
 int set_qos(client_t *client, uint8_t qos);
 
 // Get the QoS of the client
-int get_qos(client_t *client, uint8_t *qos);
+int get_qos(client_t *client);
 
 // Set the keep-alive time of the client
 int set_keep_alive(client_t *client, uint16_t keep_alive);
 
 // Get the keep-alive time of the client
-int get_keep_alive(client_t *client, uint16_t *keep_alive);
+int get_keep_alive(client_t *client);
 
-// Set the broker IP and port
-int set_broker(client_t *client , char *ip, uint16_t port);
+// Set the broker IP
+int set_broker_ip(client_t *client , char *ip);
 
-// Get the broker IP and port
-int get_broker(client_t *client, char *ip, uint16_t *port);
+// Get the broker IP. Returns the IP in the ip variable(char *ip)
+char* get_broker_ip(client_t *client);
 
-// Set the socket of the client
-int set_socket(client_t *client, int socket);
+// Set the broker port
+int set_broker_port(client_t *client, uint16_t port);
 
-// Get the socket of the client 
-int get_socket(client_t *client, int *socket);
+// Get the broker port
+int get_broker_port(client_t *client);
+
+// Set the socket file descriptor of the client
+int set_socket_fd(client_t *client, int socket);
+
+// Get the socket file descriptor of the client 
+int get_socket_fd(client_t *client);
 
 // Set the ID of the client
 int set_client_id(client_t *client, char *client_id);
 
 // Get the ID of the client
-int get_client_id(client_t *client, char *client_id);
+char* get_client_id(client_t *client);
 
 // Set the buffer size
 int set_buffer_size(client_t *client, size_t buffer_size);
 
 // Get the buffer size
-int get_buffer_size(client_t *client, size_t *buffer_size);
+size_t get_buffer_size(client_t *client);
 
-// Set the buffer
+/*
+In the function, the buffer parameter is void (any data type is allowed), but is important to change the buffer to char *
+*/
 int set_buffer(client_t *client, void *buffer);
 
 // Get the buffer
-int get_buffer(client_t *client, void *buffer);
+char* get_buffer(client_t *client);
 
 // Set the client configuration
 int set_config(client_t *client, client_config_t *config);
 
-// Get the client configuration
-int get_config(client_t *client, client_config_t *config);
+// Get the client configuration. Return an empty config if client is NULL
+client_config_t get_config(client_t *client);
 
 #endif // CLIENT_H

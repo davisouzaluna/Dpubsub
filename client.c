@@ -221,7 +221,7 @@ int receive_message_TCP(client_t *client){
         fprintf(stderr, "Failed to receive message\n");
         return -1;
     }
-    return 0;
+    return bytes_received;
 }
 
 int receive_message(client_t *client, protocol_t protocol){
@@ -238,3 +238,172 @@ int receive_message(client_t *client, protocol_t protocol){
             return -1; // Unknown protocol
     }
 }
+
+
+
+//============================================Getters and Setters============================================
+
+int set_qos(client_t *client, uint8_t qos){
+    if(!client){
+        return -1;
+    }
+    client->config.default_qos = qos;
+    return 0;
+}
+
+int get_qos(client_t *client){
+    if(!client){
+        return -1;
+    }
+    return client->config.default_qos;
+}
+
+int set_keep_alive(client_t *client, uint16_t keep_alive){
+    if(!client){
+        return -1;
+    }
+    client->config.keep_alive = keep_alive;
+    return 0;
+}
+
+int get_keep_alive(client_t *client){
+    if(!client){
+        return -1;
+    }
+    return client->config.keep_alive;
+}
+
+int set_broker_ip(client_t *client , char *ip){
+    if(!client){
+        return -1;
+    }
+    if(client->config.ip_broker){
+        free(client->config.ip_broker);
+    }
+    client->config.ip_broker = strdup(ip);
+    if(client->config.ip_broker == NULL){
+        return -1; // Error allocating memory
+    }
+    return 0;
+}
+
+char* get_broker_ip(client_t *client){
+    if(!client){
+        return NULL;
+    }
+    return client->config.ip_broker;
+}
+
+int set_broker_port(client_t *client, uint16_t port){
+    if(!client){
+        return -1;
+    }
+    client->config.port_broker = port;
+    return 0;
+}
+
+int get_broker_port(client_t *client){
+    if(!client){
+        return -1;
+    }
+    return client->config.port_broker;
+}
+
+int set_socket_fd(client_t *client, int socket){
+    if(!client){
+        return -1;
+    }
+    client->socket = socket;
+    return 0;
+}
+
+int get_socket_fd(client_t *client){
+    if(!client){
+        return -1;
+    }
+    return client->socket;
+}
+
+int set_client_id(client_t *client, char *client_id){
+    if(!client){
+        return -1;
+    }
+    if(client->config.client_id){
+        free(client->config.client_id);
+    }
+    client->config.client_id = strdup(client_id);
+    if(client->config.client_id ==NULL){
+        return -1; // Error allocating memory
+    }
+    return 0;
+}
+
+char* get_client_id(client_t *client){
+    if(!client){
+        return NULL;
+    }
+    return client->config.client_id;
+}
+
+int set_buffer_size(client_t *client, size_t buffer_size){
+    if(!client){
+        return -1;
+    }
+    client->buffer_size = buffer_size;
+    return 0;
+}
+
+size_t get_buffer_size(client_t *client){
+    if(!client){
+        return -1;
+    }
+    return client->buffer_size;
+}
+
+int set_buffer(client_t *client, void *buffer){
+    if(!client){
+        return -1;
+    }
+    if(client->buffer){
+        free(client->buffer);
+    }
+    client->buffer = (char*)buffer;
+    return 0;
+};
+
+char* get_buffer(client_t *client){
+    if(!client){
+        return -1;
+    }
+    return client->buffer;
+}
+
+int set_config(client_t *client, client_config_t *config){
+    if(!client || !config){
+        return -1;
+    }
+    client->config.client_id = strdup(config->client_id); //Dynamically allocate memory for the string and copy the content, because the original string can be freed
+    if(client->config.client_id == NULL){
+        return -1; // Error allocating memory
+    }
+    client->config.keep_alive = config->keep_alive;
+    client->config.ip_broker = strdup(config->ip_broker); //Dynamically allocate memory for the string and copy the content, because the original string can be freed
+    if(client->config.ip_broker == NULL){
+        free(client->config.client_id);
+        return -1; // Error allocating memory
+    }
+    client->config.port_broker = config->port_broker;
+    client->config.default_qos = config->default_qos;
+    return 0;
+}
+
+client_config_t get_config(client_t *client){
+    client_config_t empty_config = {0}; // Return an empty config if client is NULL
+    if(!client){
+        return empty_config;
+    }
+    return client->config;
+};
+
+
+

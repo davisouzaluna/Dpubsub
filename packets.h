@@ -1,6 +1,9 @@
 #ifndef PACKETS_H
 #define PACKETS_H
 
+#include <stddef.h>
+#include <stdint.h>
+#include "client.h"
 /*
 Nesse codigo, e onde as mensagems irao ser serializadas e desserializadas. tambem ira ser colocado um bit identificador em cada pacote para identificar de que tipo ele eh(analogo a uma flag)
 A titulo de informacao, no comeco de toda mensagem devera ser colocado um byte de controle, que ira indicar o tipo da mensagem. entao quando for feita a desserializacao, o primeiro byte sera lido e sera identificado o tipo da mensagem
@@ -36,5 +39,34 @@ deserialize(); //remove o bit identificador do pacote e identifica qual pacote e
 
 
 */
+
+typedef enum {
+	CONNECT = 0x01,
+	CONNACK = 0x00,
+	PUBLISH = 0x03,
+	PUBACK = 0x04,
+	PUBREC = 0x05,
+	PUBREL = 0x06,
+	PUBCOMP = 0x07,
+	SUBSCRIBE = 0x08,
+	SUBACK = 0x09,
+	UNSUBSCRIBE = 0x0A,
+	UNSUBACK = 0x0B,
+	PINGREQ = 0x0C,
+	PINGRESP = 0x0D,
+	DISCONNECT = 0x0E
+} packet_type_code_t;
+
+// Functions to serialize and deserialize packets
+int switch_functions(packet_type_code_t packet_type, char *buffer, size_t buffer_size);
+
+// Function to serialize connect packets(client->broker)
+int serialize_connect(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *client_id, uint16_t keep_alive);
+
+// Function to deserialize connect packets(broker->client)
+int serialize_connack(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint8_t session_present, uint8_t return_code);
+
+// Function to serialize pingreq packets(client->broker)
+
 
 #endif
