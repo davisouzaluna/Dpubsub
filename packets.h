@@ -40,6 +40,9 @@ deserialize(); //remove o bit identificador do pacote e identifica qual pacote e
 
 */
 
+/*
+Enum if contain packet types and their respective codes
+*/
 typedef enum {
 	CONNECT = 0x01,
 	CONNACK = 0x00,
@@ -57,16 +60,54 @@ typedef enum {
 	DISCONNECT = 0x0E
 } packet_type_code_t;
 
+/*
+Functions to serialize packets. The packets are serialized in the buffer argument. The buffer_size argument is the size of the buffer.
+If the serialize process is sucessful, the function returns 0. Otherwise, it returns -1.
+*/ 
+
 // Functions to serialize and deserialize packets
 int switch_functions(packet_type_code_t packet_type, char *buffer, size_t buffer_size);
 
-// Function to serialize connect packets(client->broker)
+// Function to serialize connect packets(client->broker). 
 int serialize_connect(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *client_id, uint16_t keep_alive);
 
 // Function to deserialize connect packets(broker->client)
 int serialize_connack(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint8_t session_present, uint8_t return_code);
 
-// Function to serialize pingreq packets(client->broker)
+// Function to serialize publish packets(client->broker). The messagee_id is used to identify the message.
+int serialize_publish(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup);
 
+// Function to serialize publish packets(broker->client). Acknowledge the reception of a publish message. The message id is used to identify the message(publish message).
+int serialize_puback(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id);
+
+// Function to serialize pubrec packets(broker->client). Acknowledge the reception of a publish message with QoS 2. The message id is used to identify the message(publish message).
+int serialize_pubrec(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id);
+
+// Function to serialize pubrel packets(client->broker). Acknowledge the reception of a pubrec message. The message id is used to identify the message(pubrec message).
+int serialize_pubrel(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id);
+
+// Function to serialize pubcomp packets(broker->client). Acknowledge the reception of a pubrel message. The message id is used to identify the message(pubrel message).
+int serialize_pubcomp(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id);
+
+// Function to serialize subscribe packets(client->broker). The message_id is used to identify the message.
+int serialize_subscribe(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, uint16_t message_id, uint8_t qos);
+
+// Function to serialize suback packets(broker->client). Acknowledge the reception of a subscribe message. The message id is used to identify the message(subscribe message).
+int serialize_suback(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id, uint8_t qos);
+
+// Function to serialize unsubscribe packets(client->broker). The message_id is used to identify the message.
+int serialize_unsubscribe(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, uint16_t message_id);
+
+// Function to serialize unsuback packets(broker->client). Acknowledge the reception of a unsubscribe message. The message id is used to identify the message(unsubscribe message).
+int serialize_unsuback(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id);
+
+// Function to serialize pingreq packets(client->broker)
+int serialize_pingreq(packet_type_code_t packet_type, char *buffer, size_t buffer_size);
+
+// Function to serialize pingresp packets(broker->client)
+int serialize_pingresp(packet_type_code_t packet_type, char *buffer, size_t buffer_size);
+
+// Function to serialize disconnect packets(client->broker)
+int serialize_disconnect(packet_type_code_t packet_type, char *buffer, size_t buffer_size);
 
 #endif

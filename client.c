@@ -241,6 +241,7 @@ int receive_message(client_t *client, protocol_t protocol){
 
 
 
+
 //============================================Getters and Setters============================================
 
 int set_qos(client_t *client, uint8_t qos){
