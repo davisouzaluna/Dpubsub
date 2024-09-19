@@ -13,6 +13,7 @@ add_library(client STATIC client.c)
 
 # Biblioteca tcp_client
 add_library(tcp_client STATIC transport/tcp/tcp_client.c)
+add_library (packets STATIC packets.c)
 
 # Adiciona o diretório de testes
 add_subdirectory(tests)

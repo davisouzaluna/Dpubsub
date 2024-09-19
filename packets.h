@@ -44,20 +44,20 @@ deserialize(); //remove o bit identificador do pacote e identifica qual pacote e
 Enum if contain packet types and their respective codes
 */
 typedef enum {
-	CONNECT = 0x01,
-	CONNACK = 0x00,
-	PUBLISH = 0x03,
-	PUBACK = 0x04,
-	PUBREC = 0x05,
-	PUBREL = 0x06,
-	PUBCOMP = 0x07,
-	SUBSCRIBE = 0x08,
-	SUBACK = 0x09,
-	UNSUBSCRIBE = 0x0A,
-	UNSUBACK = 0x0B,
-	PINGREQ = 0x0C,
-	PINGRESP = 0x0D,
-	DISCONNECT = 0x0E
+    CONNECT     = 0x01,
+    CONNACK     = 0x02,
+    PUBLISH     = 0x03,
+    PUBACK      = 0x04,
+    PUBREC      = 0x05,
+    PUBREL      = 0x06,
+    PUBCOMP     = 0x07,
+    SUBSCRIBE   = 0x08,
+    SUBACK      = 0x09,
+    UNSUBSCRIBE = 0x0A,
+    UNSUBACK    = 0x0B,
+    PINGREQ     = 0x0C,
+    PINGRESP    = 0x0D,
+    DISCONNECT  = 0x0E
 } packet_type_code_t;
 
 /*
@@ -69,7 +69,7 @@ If the serialize process is sucessful, the function returns 0. Otherwise, it ret
 int switch_functions(packet_type_code_t packet_type, char *buffer, size_t buffer_size);
 
 // Function to serialize connect packets(client->broker). 
-int serialize_connect(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *client_id, uint16_t keep_alive);
+int serialize_connect(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *client_id, uint16_t keep_alive, uint8_t version);
 
 // Function to deserialize connect packets(broker->client)
 int serialize_connack(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint8_t session_present, uint8_t return_code);

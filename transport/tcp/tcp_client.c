@@ -70,7 +70,7 @@ int send_bytes_to_server(int sockfd, const void *data, size_t data_len) {
         int bytes_sent = send(sockfd, data_ptr + total_bytes_sent, data_len - total_bytes_sent, 0);
         if (bytes_sent < 0) {
             perror("Error sending bytes");
-            break;
+            return -1;
         }
         total_bytes_sent += bytes_sent;
     }
