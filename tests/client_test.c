@@ -97,6 +97,9 @@ int main() {
     uint8_t retain = 0; // Não reter a mensagem
     uint8_t dup = 0; // Não duplicar a mensagem
 
+
+    
+
     int packet_length = serialize_publish(PUBLISH, buffer3, sizeof(buffer3), topic, msg, message_id, qos, retain, dup);
 
     if (packet_length > 0) {
@@ -159,6 +162,27 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    char buffer6[256];
+    int packet_length4 = serialize_subscribe(SUBSCRIBE, buffer6, sizeof(buffer6), topic, message_id, qos);
+
+    if (packet_length4 > 0) {
+        printf("Pacote SUBSCRIBE serializado com sucesso! Tamanho: %d bytes\n", packet_length4);
+        
+        // Exibir o buffer em formato hexadecimal para verificação
+        printf("Buffer: ");
+        for (int i = 0; i < packet_length4; i++) {
+            printf("%02X ", (unsigned char)buffer6[i]);
+        }
+        printf("\n");
+    } else {
+        fprintf(stderr, "Erro ao serializar o pacote SUBSCRIBE: %d\n", packet_length4);
+    }
+
+    // Enviar a mensagem
+    if (send_bytes_to_server(get_socket_fd(&client), buffer6, packet_length4) != 0) {
+        fprintf(stderr, "Failed to send message\n");
+        return EXIT_FAILURE;
+    } 
     printf("Sleeping for 2 seconds\n");
     sleep(2);
     printf("sending DISCONNECT packet\n");

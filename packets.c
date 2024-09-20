@@ -1,4 +1,7 @@
+#include <stdio.h>
+#include <errno.h>
 #include "packets.h"
+#include "transport/tcp/tcp_client.h"
 
 
 // Função para serializar um pacote CONNECT (client -> broker)
@@ -195,4 +198,40 @@ int serialize_pingreq(packet_type_code_t packet_type, char *buffer, size_t buffe
     }
 
     return index;
+};
+
+int serialize_subscribe(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, uint16_t message_id, uint8_t qos){
+    if (buffer == NULL || topic == NULL) {
+        return -1; // parâmetros inválidos
+    }
+
+    size_t topic_len = strlen(topic);
+    size_t remaining_length = 2 + 2 + topic_len + 1; // 2 bytes para Message ID
+
+    if (1 + remaining_length > buffer_size) {
+        return -2; //buffer insuficiente
+    }
+
+    size_t index = 0;
+
+    // Fixed Header
+    buffer[index++] = (packet_type << 4) | 0x02; // QoS = 1
+    buffer[index++] = remaining_length; // Comprimento restante
+
+    // Message ID (2 bytes)
+    buffer[index++] = (message_id >> 8) & 0xFF; // MSB
+    buffer[index++] = message_id & 0xFF;        // LSB
+
+    // Tópico Length (2 bytes)
+    buffer[index++] = (topic_len >> 8) & 0xFF; // MSB
+    buffer[index++] = topic_len & 0xFF;        // LSB
+
+    // Tópico
+    memcpy(buffer + index, topic, topic_len);
+    index += topic_len;
+
+    // QoS
+    buffer[index++] = qos;
+
+    return index; 
 };
