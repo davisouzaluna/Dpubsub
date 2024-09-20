@@ -4,6 +4,8 @@
         "tcp_client.h": "c",
         "string.h": "c",
         "client.h": "c",
-        "packets.h": "c"
+        "packets.h": "c",
+        "netdb.h": "c",
+        "types.h": "c"
     }
 }

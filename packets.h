@@ -74,7 +74,12 @@ int serialize_connect(packet_type_code_t packet_type, char *buffer, size_t buffe
 // Function to deserialize connect packets(broker->client)
 int serialize_connack(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint8_t session_present, uint8_t return_code);
 
-// Function to serialize publish packets(client->broker). The messagee_id is used to identify the message.
+// Function to encode the remaining length of the packet
+int encode_remaining_length(size_t length, char *buffer, size_t buffer_size);
+
+/* Function to serialize publish packets(client->broker). The messagee_id is used to identify the message(qos 1). 
+Only works with QoS 0. The QoS 1 and 2 are not implemented yet. The retain and dup are not implemented yet.
+*/
 int serialize_publish(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup);
 
 // Function to serialize publish packets(broker->client). Acknowledge the reception of a publish message. The message id is used to identify the message(publish message).

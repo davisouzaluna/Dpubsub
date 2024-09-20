@@ -87,3 +87,71 @@ int serialize_connack(packet_type_code_t packet_type, char *buffer, size_t buffe
 
     return 2; 
 }
+
+int encode_remaining_length(size_t length, char *buffer, size_t buffer_size) {
+    size_t index = 0;
+    do {
+        unsigned char encoded_byte = length & 0x7F; // 7 bits
+        length >>= 7; // Move para o próximo byte
+        if (length > 0) {
+            encoded_byte |= 0x80; // Define o bit mais significativo para indicar mais bytes
+        }
+        if (index >= buffer_size) {
+            return -1; // Erro: buffer insuficiente
+        }
+        buffer[index++] = encoded_byte;
+    } while (length > 0);
+
+    return index; // Retorna o número de bytes usados
+}
+
+int serialize_publish(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup) {
+    if (buffer == NULL || topic == NULL || message == NULL) {
+        return -1; // parametros invalidos
+    }
+
+    size_t topic_len = strlen(topic);
+    size_t message_len = strlen(message);
+    size_t remaining_length = 2 + topic_len + message_len; // 2 bytes para o comprimento do tópico
+
+    if (qos > 0) {
+        remaining_length += 2; // 2 bytes para Message ID
+    }
+
+    if (1 + remaining_length > buffer_size) {
+        return -2; // buffer insuficiente
+    }
+
+    size_t index = 0;
+
+    // Fixed Header
+    buffer[index++] = (packet_type << 4) | (dup << 3) | (qos & 0x03) | (retain & 0x01);
+
+    // Remaining Length
+    int encoded_length = encode_remaining_length(remaining_length, buffer + index, buffer_size - index);
+    if (encoded_length < 0) {
+        return -3; // Erro na codificação do comprimento
+    }
+    index += encoded_length;
+
+    // Variable Header
+    // Tópico Length (2 bytes)
+    buffer[index++] = (topic_len >> 8) & 0xFF; // MSB
+    buffer[index++] = topic_len & 0xFF;        // LSB
+
+    // Tópico
+    memcpy(buffer + index, topic, topic_len);
+    index += topic_len;
+
+    // Message ID (2 bytes) se QoS > 0
+    if (qos > 0) {
+        buffer[index++] = (message_id >> 8) & 0xFF; // MSB
+        buffer[index++] = message_id & 0xFF;        // LSB
+    }
+
+    // Payload (Mensagem)
+    memcpy(buffer + index, message, message_len);
+    index += message_len;
+
+    return index; // Retorna o tamanho total do pacote serializado(pra utilizar no tamanho do buffer do pacote de envio)
+}

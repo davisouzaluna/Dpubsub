@@ -8,7 +8,8 @@
 #include <netinet/in.h>
 
 #define SERVER_IP "127.0.0.1"  
-#define SERVER_PORT 8080       
+#define SERVER_PORT 8080    
+   
 
 // Cria uma conexão com o servidor
 int create_connection_to_server(const char *addr, int port) {

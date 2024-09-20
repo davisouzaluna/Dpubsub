@@ -374,7 +374,7 @@ int set_buffer(client_t *client, void *buffer){
 
 char* get_buffer(client_t *client){
     if(!client){
-        return -1;
+        return -1; //retorno estranho(consertar dps, pois o tipo da funcao eh varchar)
     }
     return client->buffer;
 }

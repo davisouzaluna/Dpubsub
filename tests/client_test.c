@@ -9,11 +9,13 @@ int main() {
     size_t buffer_size = 0; // Tamanho do buffer será definido pelo padrão se for 0
 
     // Configuração do cliente
-    config.client_id = "heheeeeeee";
+    config.client_id = "davifurao";
     config.keep_alive = 60;
-    config.ip_broker = "35.172.255.228"; // IP de teste
+    config.ip_broker = "91.121.93.94"; // IP de teste
     config.port_broker = 1883; // Porta do servidor de teste: ../transport/tcp/tests/server.c
-    config.default_qos = 1;
+    config.default_qos = 0;
+
+
 
     // Testar a criação do cliente
     if (create_client(&client, &config, buffer_size) != 0) {
@@ -84,8 +86,37 @@ int main() {
     printf("Buffer: %p\n", buffer_2);
     printf("Bytes to send: %d\n", serialize_CONNECT);
 
+    char buffer3[256];
 
+    // testar a publicacao de dados para o broker
+    const char *topic = "dpubsub";
+    const char *msg = "opa1";
+    uint16_t message_id = 1; // Usado apenas se QoS > 0
+    uint8_t qos = get_qos(&client); // Nível de QoS(testando o getter)
+    uint8_t retain = 0; // Não reter a mensagem
+    uint8_t dup = 0; // Não duplicar a mensagem
+
+    int packet_length = serialize_publish(PUBLISH, buffer3, sizeof(buffer3), topic, msg, message_id, qos, retain, dup);
+
+    if (packet_length > 0) {
+        printf("Pacote PUBLISH serializado com sucesso! Tamanho: %d bytes\n", packet_length);
+        
+        // Exibir o buffer em formato hexadecimal para verificação
+        printf("Buffer: ");
+        for (int i = 0; i < packet_length; i++) {
+            printf("%02X ", (unsigned char)buffer3[i]);
+        }
+        printf("\n");
+    } else {
+        fprintf(stderr, "Erro ao serializar o pacote PUBLISH: %d\n", packet_length);
+    }
     
+    // Enviar a mensagem
+    if (send_bytes_to_server(get_socket_fd(&client), buffer3, packet_length) != 0) {
+        fprintf(stderr, "Failed to send message\n");
+        return EXIT_FAILURE;
+    }
+
 
     // Testar a desconexão do broker usando TCP
     if (disconnect_client(&client, PROTOCOL_TCP) != 0) {
