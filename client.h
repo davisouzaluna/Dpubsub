@@ -1,3 +1,10 @@
+/*
+Author: Davi Souza de Luna
+License: MIT
+
+This code shows the implementation of a MQTT Client.
+*/
+
 #ifndef CLIENT_H
 #define CLIENT_H
 #include <stdint.h>
