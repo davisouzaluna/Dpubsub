@@ -235,3 +235,83 @@ int serialize_subscribe(packet_type_code_t packet_type, char *buffer, size_t buf
 
     return index; 
 };
+
+int handle_publish(int socket_fd) {
+    // Buffer para armazenar o pacote recebido
+    char buffer[512];
+    int received_bytes = receive_bytes_from_server_static_buff(socket_fd, buffer, sizeof(buffer));
+    
+    if (received_bytes == 0) {
+        fprintf(stderr, "Conexão fechada pelo servidor.\n");
+        return -1;
+    } else if (received_bytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            // Erro temporário, pode tentar receber novamente
+            fprintf(stderr, "Erro temporário ao receber dados. Tentando novamente...\n");
+            return 0; // Não encerrar o loop
+        } else {
+            perror("Erro ao receber dados do servidor");
+            return -1;
+        }
+    }
+
+    // Verifica se o tipo do pacote é PUBLISH (0x03)
+    if ((buffer[0] >> 4) != 0x03) {
+        fprintf(stderr, "Erro: Tipo de pacote inesperado. Esperado PUBLISH (0x03).\n");
+        return -2;
+    }
+
+    // Decodifica o comprimento do restante do pacote
+    uint8_t remaining_length = buffer[1];
+    
+    // Verifica o QoS
+    uint8_t qos = (buffer[0] & 0x06) >> 1;
+
+    // Tópico Length (2 bytes)
+    uint16_t topic_length = (buffer[2] << 8) | buffer[3];
+
+    // Tópico (com base no comprimento do tópico)
+    char topic[256];
+    memcpy(topic, buffer + 4, topic_length);
+    topic[topic_length] = '\0'; // Adiciona terminador nulo
+
+    // Posição inicial do payload (após o tópico)
+    size_t payload_start = 4 + topic_length;
+
+    // Se QoS > 0, tem Message ID (2 bytes)
+    uint16_t message_id = 0;
+    if (qos > 0) {
+        message_id = (buffer[payload_start] << 8) | buffer[payload_start + 1];
+        payload_start += 2; // Pula o ID da mensagem
+    }
+
+    // O resto é o payload
+    char payload[256];
+    size_t payload_length = remaining_length - (payload_start - 2); // 2 bytes para o fixed header
+    memcpy(payload, buffer + payload_start, payload_length);
+    payload[payload_length] = '\0'; // Adiciona terminador nulo
+
+    // Exibe a mensagem recebida
+    printf("Mensagem recebida no tópico '%s': %s\n", topic, payload);
+
+    // Resposta necessária dependendo do QoS
+    if (qos == 1) {
+        // Enviar PUBACK
+        char puback_packet[4];
+        puback_packet[0] = 0x40; // Tipo de pacote PUBACK
+        puback_packet[1] = 0x02; // Tamanho do restante do pacote
+        puback_packet[2] = (message_id >> 8) & 0xFF; // MSB do Message ID
+        puback_packet[3] = message_id & 0xFF;        // LSB do Message ID
+
+        // Enviar PUBACK
+        send_bytes_to_server(socket_fd, puback_packet, sizeof(puback_packet));
+        printf("PUBACK enviado para Message ID: %d\n", message_id);
+    } else if (qos == 2) {
+        // Lógica para QoS 2 (PUBREC e PUBREL)
+        // PUBREC deve ser enviado aqui
+        // A lógica de QoS 2 envolve múltiplas trocas, então considere uma implementação mais detalhada para esse caso
+    }
+
+    return 0;
+}
+

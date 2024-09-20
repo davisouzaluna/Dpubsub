@@ -97,6 +97,9 @@ int serialize_pubcomp(packet_type_code_t packet_type, char *buffer, size_t buffe
 // Function to serialize subscribe packets(client->broker). The message_id is used to identify the message.
 int serialize_subscribe(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, uint16_t message_id, uint8_t qos);
 
+// Function to deserialize subscribe packets(broker->client). This function receive PUBLISH packets from broker and print the message in the terminal.
+int handle_publish(int socket_fd) ;
+
 // Function to serialize suback packets(broker->client). Acknowledge the reception of a subscribe message. The message id is used to identify the message(subscribe message).
 int serialize_suback(packet_type_code_t packet_type, char *buffer, size_t buffer_size, uint16_t message_id, uint8_t qos);
 

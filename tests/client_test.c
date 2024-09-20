@@ -183,6 +183,19 @@ int main() {
         fprintf(stderr, "Failed to send message\n");
         return EXIT_FAILURE;
     } 
+
+    // Testar o recebimento das mensagens depois de se subscrever
+    int tempo = 0;
+    /*fica 10 segundos recebendo mensagens
+    Depois de um tempo o broker se desconecta automaticamente
+    */
+    while (tempo <10){
+        //funcao que trata o recebimento de mensagens
+        handle_publish(get_socket_fd(&client));
+        sleep(1);
+        tempo++;
+    }
+
     printf("Sleeping for 2 seconds\n");
     sleep(2);
     printf("sending DISCONNECT packet\n");
@@ -191,7 +204,6 @@ int main() {
         fprintf(stderr, "Failed to send message\n");
         return EXIT_FAILURE;
     }
-
 
     // Testar a desconexão do broker usando TCP
     if (disconnect_client(&client, PROTOCOL_TCP) != 0) {
