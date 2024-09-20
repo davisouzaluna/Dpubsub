@@ -176,3 +176,23 @@ int serialize_disconnect(packet_type_code_t packet_type, char *buffer, size_t bu
     return index;
 
 };
+
+int serialize_pingreq(packet_type_code_t packet_type, char *buffer, size_t buffer_size){
+
+    
+    if (buffer == NULL) {
+        return -1; // Erro: parâmetros inválidos
+    }
+
+    size_t index = 0;
+
+    // Fixed Header
+    buffer[index++] = packet_type; // Tipo de pacote no alto de 4 bits
+    buffer[index++] = 0x00;            // Comprimento restante
+
+    if (index > buffer_size) {
+        return -2; // Erro: buffer insuficiente
+    }
+
+    return index;
+};

@@ -55,7 +55,7 @@ typedef enum {
     SUBACK      = 0x09,
     UNSUBSCRIBE = 0x0A,
     UNSUBACK    = 0x0B,
-    PINGREQ     = 0x0C,
+    PINGREQ     = 0xC0,
     PINGRESP    = 0x0D,
     DISCONNECT  = 0xE0
 } packet_type_code_t;

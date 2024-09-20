@@ -134,6 +134,31 @@ int main() {
     } else {
         fprintf(stderr, "Erro ao serializar o pacote DISCONNECT: %d\n", packet_length2);
     }
+
+    printf("sending a PINGREQ packet\n");
+
+    char buffer5[2];
+    int packet_length3 = serialize_pingreq(PINGREQ, buffer5, sizeof(buffer5));
+
+    if (packet_length3 > 0) {
+        printf("Pacote PINGREQ serializado com sucesso! Tamanho: %d bytes\n", packet_length3);
+        
+        // Exibir o buffer em formato hexadecimal para verificação
+        printf("Buffer: ");
+        for (int i = 0; i < packet_length3; i++) {
+            printf("%02X ", (unsigned char)buffer5[i]);
+        }
+        printf("\n");
+    } else {
+        fprintf(stderr, "Erro ao serializar o pacote PINGREQ: %d\n", packet_length3);
+    }
+
+    // Enviar a mensagem
+    if (send_bytes_to_server(get_socket_fd(&client), buffer5, packet_length3) != 0) {
+        fprintf(stderr, "Failed to send message\n");
+        return EXIT_FAILURE;
+    }
+
     printf("Sleeping for 2 seconds\n");
     sleep(2);
     printf("sending DISCONNECT packet\n");
