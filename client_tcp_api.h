@@ -40,10 +40,10 @@ int client_unsubscribe(const char *topic, uint16_t message_id);
 /*
 Sending a PUBLISH packet to an broker.
 */
-int client_publish(const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup);
+int client_publish(const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup);
 
 /*
-Check connection
+Check connection. Wait for the broker to send a PINGRESP packet.
 */
-int client_pingreq();
+int client_pingreq(client_t *client);
 

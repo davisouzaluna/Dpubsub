@@ -1,4 +1,5 @@
 #include "client_tcp_api.h"
+#include "packets.h"
 
 
 int client_connect_params(char *client_id, uint16_t keep_alive, char *ip_broker, uint16_t port_broker, uint8_t version){
@@ -36,3 +37,18 @@ int client_subscribe(client_t *client,const char *topic, uint16_t message_id){
     return 0;
 };
 
+int publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup){
+    return publish(client, topic, message, message_id, qos, retain, dup);
+}
+
+int client_pingreq(client_t *client){
+    char buffer[2];
+    int create_packet = serialize_pingreq(PINGREQ, buffer, sizeof(buffer));
+    if(create_packet!=0){
+        return -1;
+    }
+    if(send_message(client, buffer, PROTOCOL_TCP)!=0){
+        return -1;
+    }
+    return 0;
+}

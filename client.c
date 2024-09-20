@@ -235,6 +235,29 @@ int subscribe_topic(client_t *client, char *topic, protocol_t protocol){
     return 0;
 };
 
+int publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
+    char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    if(buffer == NULL){
+        return -1;
+    }
+    message_t *msg;
+    msg->topic = topic;
+    msg->payload = message;
+    msg->qos = get_qos(client);
+    msg->retain = retain;
+    int create_packet = serialize_publish(PUBLISH, buffer, strlen(message), msg->topic, msg->payload, message_id, msg->qos, retain, dup);
+    if(create_packet < 0){
+        free(buffer);
+        return -1;
+    }
+    int send_packet = send_message(client, buffer, PROTOCOL_TCP);
+    if(send_packet < 0){
+        free(buffer);
+        return -1;
+    }
+    free(buffer);
+    return 0;
+}
 
 
 
