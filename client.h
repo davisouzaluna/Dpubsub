@@ -88,7 +88,7 @@ int receive_message_TCP(client_t *client);
 int receive_message(client_t *client, protocol_t protocol);
 
 // Subscribe to a topic
-int subscribe_topic(client_t *client, char *topic);
+int subscribe_topic(client_t *client, char *topic, protocol_t protocol);
 
 
 // Unsubscribe from a topic

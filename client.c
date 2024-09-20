@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "client.h"
+#include "packets.h"
 
 
 /*
@@ -212,6 +213,27 @@ int receive_message(client_t *client, protocol_t protocol){
             return -1; // Unknown protocol
     }
 }
+
+int subscribe_topic(client_t *client, char *topic, protocol_t protocol){
+    char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    if(buffer == NULL){
+        return -1;
+    }
+    int message_id = 1; //Gerar um id de mensagem
+    int qos = get_qos(client); //Qualidade de serviço
+    int create_packet = serialize_subscribe(SUBSCRIBE, buffer, sizeof(buffer), topic, message_id, qos);
+    if(create_packet < 0){
+        free(buffer);
+        return -1;
+    }
+    int send_packet = send_message(client, buffer, protocol);
+    if(send_packet < 0){
+        free(buffer);
+        return -1;
+    }
+    free(buffer);
+    return 0;
+};
 
 
 

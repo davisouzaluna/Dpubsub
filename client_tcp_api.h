@@ -30,7 +30,7 @@ int client_disconnect(client_t *client);
 /*
 Sending the packet SUBSCRIBE to the broker. 
 */
-int client_subscribe(const char *topic, uint16_t message_id, uint8_t qos);
+int client_subscribe(client_t *client,const char *topic, uint16_t message_id);
 
 /*
 Sending the packet UNSUBSCRIBE to the broker.
