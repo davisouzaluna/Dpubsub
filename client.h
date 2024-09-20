@@ -88,7 +88,7 @@ int receive_message_TCP(client_t *client);
 int receive_message(client_t *client, protocol_t protocol);
 
 // Subscribe to a topic
-int subscribe_topic(client_t *client, char *topic, protocol_t protocol);
+int subscribe_topic(client_t *client, const char *topic, protocol_t protocol);
 
 /*
 Publish in a topic. The client must be connected before publishing. The message_id is used to identify the message. The QoS is the quality of service. The retain is used to retain the message. The dup is used to duplicate the message.

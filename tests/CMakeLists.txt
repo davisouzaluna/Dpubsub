@@ -10,6 +10,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../transport/tcp)
 
 # Adiciona o executável de teste
 add_executable(client_test client_test.c)
+add_executable(api_test api_test.c)
 
 # Linka o executável de teste com as bibliotecas necessárias
-target_link_libraries(client_test client tcp_client packets)
+target_link_libraries(client_test client tcp_client packets client_tcp_api)
+target_link_libraries(api_test client tcp_client packets client_tcp_api)

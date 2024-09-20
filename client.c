@@ -214,7 +214,7 @@ int receive_message(client_t *client, protocol_t protocol){
     }
 }
 
-int subscribe_topic(client_t *client, char *topic, protocol_t protocol){
+int subscribe_topic(client_t *client, const char *topic, protocol_t protocol){
     char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
     if(buffer == NULL){
         return -1;

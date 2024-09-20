@@ -3,7 +3,9 @@
 
 
 int client_connect_params(char *client_id, uint16_t keep_alive, char *ip_broker, uint16_t port_broker, uint8_t version){
-    client_t *client = client_create();
+    client_t *client;
+    client_config_t *config;
+    create_client(client, config, 0);
     if(!client){
         return -1;
     }
@@ -11,7 +13,7 @@ int client_connect_params(char *client_id, uint16_t keep_alive, char *ip_broker,
     set_keep_alive(client, keep_alive);
     set_broker_ip(client, ip_broker);
     set_broker_port(client, port_broker);
-    set_config(client, client_config_create(version));
+    set_config(client, config);
     return connect_client(client, PROTOCOL_TCP);
 };
 
@@ -20,7 +22,14 @@ int client_connect(client_t *client){
 }
 
 int client_disconnect_params(char *client_id, uint16_t keep_alive, char *ip_broker, uint16_t port_broker, uint8_t version){
-    client_t *client = client_create();
+    client_t *client;
+    client_config_t *config;
+    set_client_id(client, client_id);
+    set_keep_alive(client, keep_alive);
+    set_broker_ip(client, ip_broker);
+    set_broker_port(client, port_broker);
+    set_config(client, config);
+    create_client(client, config, 0);
     return disconnect_client(client, PROTOCOL_TCP);
 }
 
@@ -37,8 +46,9 @@ int client_subscribe(client_t *client,const char *topic, uint16_t message_id){
     return 0;
 };
 
-int publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup){
-    return publish(client, topic, message, message_id, qos, retain, dup);
+int client_publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
+    publish(client, topic, message, message_id, retain, dup);
+    return 0;
 }
 
 int client_pingreq(client_t *client){
