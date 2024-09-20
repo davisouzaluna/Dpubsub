@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include "client.h"
 #include "packets.h"
@@ -113,6 +114,31 @@ int main() {
     
     // Enviar a mensagem
     if (send_bytes_to_server(get_socket_fd(&client), buffer3, packet_length) != 0) {
+        fprintf(stderr, "Failed to send message\n");
+        return EXIT_FAILURE;
+    }
+
+    // Testar o envio do pacote disconnect
+    char buffer4[2];
+    int packet_length2 = serialize_disconnect(DISCONNECT, buffer4, sizeof(buffer4));
+
+    if (packet_length2 > 0) {
+        printf("Pacote DISCONNECT serializado com sucesso! Tamanho: %d bytes\n", packet_length2);
+        
+        // Exibir o buffer em formato hexadecimal para verificação
+        printf("Buffer: ");
+        for (int i = 0; i < packet_length2; i++) {
+            printf("%02X ", (unsigned char)buffer4[i]);
+        }
+        printf("\n");
+    } else {
+        fprintf(stderr, "Erro ao serializar o pacote DISCONNECT: %d\n", packet_length2);
+    }
+    printf("Sleeping for 2 seconds\n");
+    sleep(2);
+    printf("sending DISCONNECT packet\n");
+    // Enviar a mensagem
+    if (send_bytes_to_server(get_socket_fd(&client), buffer4, packet_length2) != 0) {
         fprintf(stderr, "Failed to send message\n");
         return EXIT_FAILURE;
     }
