@@ -240,10 +240,10 @@ int handle_publish(int socket_fd) {
     // Buffer para armazenar o pacote recebido
     char buffer[512];
     int received_bytes = receive_bytes_from_server_static_buff(socket_fd, buffer, sizeof(buffer));
-    
+
     if (received_bytes == 0) {
         fprintf(stderr, "Conexão fechada pelo servidor.\n");
-        return -1;
+        return -1; // Conexão encerrada
     } else if (received_bytes < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             // Erro temporário, pode tentar receber novamente
@@ -251,19 +251,20 @@ int handle_publish(int socket_fd) {
             return 0; // Não encerrar o loop
         } else {
             perror("Erro ao receber dados do servidor");
-            return -1;
+            return -1; // Erro ao receber dados
         }
     }
 
     // Verifica se o tipo do pacote é PUBLISH (0x03)
     if ((buffer[0] >> 4) != 0x03) {
-        fprintf(stderr, "Erro: Tipo de pacote inesperado. Esperado PUBLISH (0x03).\n");
-        return -2;
+        // Ignorar pacotes que não são PUBLISH
+        printf("Pacote ignorado: Tipo de pacote inesperado. Esperado PUBLISH (0x03), mas recebido: 0x%X\n", (buffer[0] >> 4));
+        return 0; // Continua no loop, mas ignora o pacote
     }
 
     // Decodifica o comprimento do restante do pacote
     uint8_t remaining_length = buffer[1];
-    
+
     // Verifica o QoS
     uint8_t qos = (buffer[0] & 0x06) >> 1;
 
@@ -314,4 +315,3 @@ int handle_publish(int socket_fd) {
 
     return 0;
 }
-

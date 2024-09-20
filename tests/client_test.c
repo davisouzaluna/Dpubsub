@@ -186,15 +186,27 @@ int main() {
 
     // Testar o recebimento das mensagens depois de se subscrever
     int tempo = 0;
-    /*fica 10 segundos recebendo mensagens
-    Depois de um tempo o broker se desconecta automaticamente
-    */
-    while (tempo <10){
-        //funcao que trata o recebimento de mensagens
-        handle_publish(get_socket_fd(&client));
-        sleep(1);
-        tempo++;
+int resultado;
+
+while (tempo < 10) {
+    resultado = handle_publish(get_socket_fd(&client));
+    
+    if (resultado < 0) {
+        // Sai do loop se houver um erro crítico
+        printf("Erro crítico ou conexão fechada. Saindo...\n");
+        break;
     }
+
+    sleep(1); // Aguarda 1 segundo
+    tempo++;
+}
+
+if (tempo == 10) {
+    printf("Tempo esgotado\n");
+} else {
+    printf("Loop interrompido antes de completar os 10 segundos.\n");
+}
+
 
     printf("Sleeping for 2 seconds\n");
     sleep(2);
