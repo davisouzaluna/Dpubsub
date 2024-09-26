@@ -215,7 +215,8 @@ int receive_message(client_t *client, protocol_t protocol){
 }
 
 int subscribe_topic(client_t *client, const char *topic, protocol_t protocol){
-    char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    //char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    char buffer[256];
     if(buffer == NULL){
         return -1;
     }
@@ -223,39 +224,51 @@ int subscribe_topic(client_t *client, const char *topic, protocol_t protocol){
     int qos = get_qos(client); //Qualidade de serviço
     int create_packet = serialize_subscribe(SUBSCRIBE, buffer, sizeof(buffer), topic, message_id, qos);
     if(create_packet < 0){
-        free(buffer);
+        //free(buffer);
         return -1;
     }
-    int send_packet = send_message(client, buffer, protocol);
+    int send_packet = send_bytes_to_server(get_socket_fd(client), buffer, create_packet);
     if(send_packet < 0){
-        free(buffer);
+        //free(buffer);
         return -1;
     }
-    free(buffer);
+    //free(buffer);
     return 0;
 };
 
 int publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
-    char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    //char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    char buffer3[256];
+    /*
     if(buffer == NULL){
         return -1;
     }
+    */
     message_t *msg;
     msg->topic = topic;
     msg->payload = message;
     msg->qos = get_qos(client);
+    printf("QoS: %d\n", msg->qos);
     msg->retain = retain;
-    int create_packet = serialize_publish(PUBLISH, buffer, strlen(message), msg->topic, msg->payload, message_id, msg->qos, retain, dup);
+    int create_packet = serialize_publish(PUBLISH, buffer3, sizeof(buffer3), msg->topic, msg->payload, message_id, msg->qos, retain, dup);
+    /*
     if(create_packet < 0){
         free(buffer);
         return -1;
     }
-    int send_packet = send_message(client, buffer, PROTOCOL_TCP);
+    */
+    if(send_bytes_to_server(get_socket_fd(client), buffer3, create_packet)!=0){
+        fprintf(stderr, "Failed to send message and PUBLISH packet\n");
+        return -1;
+    }
+
+    /*
     if(send_packet < 0){
         free(buffer);
         return -1;
     }
     free(buffer);
+    */
     return 0;
 }
 
