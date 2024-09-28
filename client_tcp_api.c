@@ -41,19 +41,45 @@ int client_connect(client_t *client){
 }
 
 int client_disconnect_params(char *client_id, uint16_t keep_alive, char *ip_broker, uint16_t port_broker, uint8_t version){
-    client_t *client;
-    client_config_t *config;
-    set_client_id(client, client_id);
-    set_keep_alive(client, keep_alive);
-    set_broker_ip(client, ip_broker);
-    set_broker_port(client, port_broker);
-    set_config(client, config);
-    create_client(client, config, 0);
-    return disconnect_client(client, PROTOCOL_TCP);
+    client_t client;
+    client_config_t config;
+    char buffer[2];
+    config.client_id = client_id;
+    config.keep_alive = keep_alive;
+    config.ip_broker = ip_broker;
+    config.port_broker = port_broker;
+    config.default_qos = 0;
+    //create_client(&client, &config, 0);
+    int disconnect = serialize_disconnect(DISCONNECT, buffer, sizeof(buffer));
+    if(disconnect < 0){
+        return -1;
+    }
+    int send_disconnect = send_bytes_to_server(get_socket_fd(&client), buffer, disconnect);
+    if(send_disconnect != 0){
+        return -1;
+    }
+    // disconnect to the client in TCP level
+    disconnect_client(&client, PROTOCOL_TCP);
+
+    
+    //destroy_client(&client);
 }
 
 int client_disconnect(client_t *client){
-    return disconnect_client(client, PROTOCOL_TCP);
+
+    char buffer[2];
+    int disconnect = serialize_disconnect(DISCONNECT, buffer, sizeof(buffer));
+    if(disconnect < 0){
+        return -1;
+    }
+    int send_disconnect = send_bytes_to_server(get_socket_fd(client), buffer, disconnect);
+    if(send_disconnect != 0){
+        return -1;
+    }
+    disconnect_client(client, PROTOCOL_TCP);
+    
+    //liberar recursos
+    destroy_client(client);
 }
 
 int client_subscribe(client_t *client,const char *topic, uint16_t message_id){
