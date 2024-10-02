@@ -184,32 +184,66 @@ int main() {
         return EXIT_FAILURE;
     } 
 
+
+/* LOOP de manipulacao dos pacotes PUBLISH
+
     // Testar o recebimento das mensagens depois de se subscrever
     int tempo = 0;
-int resultado;
+    int resultado;
+
+    printf("\n");
 
 while (tempo < 10) {
     resultado = handle_publish(get_socket_fd(&client));
+    tempo++;
     
     if (resultado < 0) {
         // Sai do loop se houver um erro crítico
         printf("Erro crítico ou conexão fechada. Saindo...\n");
         break;
     }
-
     sleep(1); // Aguarda 1 segundo
-    tempo++;
-}
+    printf("Tempo: %d\n", tempo);
+    
+    }
 
-if (tempo == 10) {
+    if (tempo == 10) {
     printf("Tempo esgotado\n");
-} else {
+    } else {
     printf("Loop interrompido antes de completar os 10 segundos.\n");
-}
-
+ }
+*/
 
     printf("Sleeping for 2 seconds\n");
     sleep(2);
+    printf("Testing UNSUBSCRIBE packet\n");
+
+    // Agora vem a logica pra saber o tamanho do buffer estatico. E um TESTE(ainda precisa melhorar)
+    int num_topics = 1; //aqui tbm deve ser implementada uma abstracao para o numero de topicos
+    int topic_length = strlen(topic);
+    int buffer_size_unsub = 2 + 2 + (2 + topic_length);
+
+    char buffer7[buffer_size_unsub];// buffer variavel
+    int packet_length5 = serialize_unsubscribe(UNSUBSCRIBE, buffer7, sizeof(buffer7), topic, message_id);
+    if(packet_length5 > 0){
+        printf("Pacote UNSUBSCRIBE serializado com sucesso! Tamanho: %d bytes\n", packet_length5);
+        printf("Buffer: ");
+        for(int i = 0; i < packet_length5; i++){
+            printf("%02X ", (unsigned char)buffer7[i]);
+        }
+        printf("\n");
+    }
+    else{
+        fprintf(stderr, "Erro ao serializar o pacote UNSUBSCRIBE: %d\n", packet_length5);
+    }
+
+    printf("sending UNSUBSCRIBE packet\n");
+    // Enviar a mensagem
+    if (send_bytes_to_server(get_socket_fd(&client), buffer7, packet_length5) != 0) {
+        fprintf(stderr, "Failed to send message\n");
+        return EXIT_FAILURE;
+    }
+    
     printf("sending DISCONNECT packet\n");
     // Enviar a mensagem
     if (send_bytes_to_server(get_socket_fd(&client), buffer4, packet_length2) != 0) {

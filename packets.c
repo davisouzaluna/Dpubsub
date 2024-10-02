@@ -236,6 +236,39 @@ int serialize_subscribe(packet_type_code_t packet_type, char *buffer, size_t buf
     return index; 
 };
 
+int serialize_unsubscribe(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, uint16_t message_id){
+    if (buffer == NULL || topic == NULL) {
+        return -1; // parâmetros inválidos
+    }
+
+    size_t topic_len = strlen(topic);
+    size_t remaining_length = 2 + 2 + topic_len; // 2 bytes para Message ID
+
+    if (1 + remaining_length > buffer_size) {
+        return -2; // buffer insuficiente
+    }
+
+    size_t index = 0;
+
+    // Fixed Header
+    buffer[index++] = (packet_type << 4) | 0x02; 
+    buffer[index++] = remaining_length; // Comprimento restante(aquele campo do lado direito do fixed header)
+
+    // Message ID (2 bytes)
+    buffer[index++] = (message_id >> 8) & 0xFF; // MSB
+    buffer[index++] = message_id & 0xFF;        // LSB
+
+    // Tópico Length (2 bytes)
+    buffer[index++] = (topic_len >> 8) & 0xFF; // MSB
+    buffer[index++] = topic_len & 0xFF;        // LSB
+
+    // Tópico
+    memcpy(buffer + index, topic, topic_len);
+    index += topic_len;
+
+    return index; // Agora eh so partir pro abraco, usa e envia
+};
+
 int handle_publish(int socket_fd) {
     // Buffer para armazenar o pacote recebido
     char buffer[512];
