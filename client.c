@@ -393,6 +393,28 @@ size_t get_buffer_size(client_t *client){
     return client->buffer_size;
 }
 
+//TODO: Rever a funcao set_buffer
+
+/*
+Ideia utilizando o tamanho do buffer como parametro:
+int set_buffer(client_t *client, void *buffer, size_t buffer_size){
+    if(!client){
+        return -1;
+    }
+    if(client->buffer){
+        free(client->buffer);
+    }
+    client->buffer = malloc(buffer_size);
+    if(client->buffer == NULL){
+        return -1;
+    }
+    memcpy(client->buffer, buffer, buffer_size); // Copia os dados
+    client->buffer_size = buffer_size;
+    return 0;
+}
+
+
+*/
 int set_buffer(client_t *client, void *buffer){
     if(!client){
         return -1;
@@ -406,7 +428,7 @@ int set_buffer(client_t *client, void *buffer){
 
 char* get_buffer(client_t *client){
     if(!client){
-        return -1; //retorno estranho(consertar dps, pois o tipo da funcao eh varchar)
+        return NULL;
     }
     return client->buffer;
 }
@@ -415,19 +437,39 @@ int set_config(client_t *client, client_config_t *config){
     if(!client || !config){
         return -1;
     }
-    client->config.client_id = strdup(config->client_id); //Dynamically allocate memory for the string and copy the content, because the original string can be freed
-    if(client->config.client_id == NULL){
-        return -1; // Error allocating memory
-    }
-    client->config.keep_alive = config->keep_alive;
-    client->config.ip_broker = strdup(config->ip_broker); //Dynamically allocate memory for the string and copy the content, because the original string can be freed
-    if(client->config.ip_broker == NULL){
+    if(client->config.client_id){
         free(client->config.client_id);
-        return -1; // Error allocating memory
     }
+    if(client->config.ip_broker){
+        free(client->config.ip_broker);
+    }
+    if(config->client_id){
+        client->config.client_id = strdup(config->client_id);
+        if(!client->config.client_id){
+            return -1;
+        }
+
+    }else{
+        client->config.client_id = NULL; // Se ele for nulo, deixa NULL
+    }
+
+    
+    if (config->ip_broker) {
+        client->config.ip_broker = strdup(config->ip_broker);
+        if (!client->config.ip_broker) {
+            free(client->config.client_id);
+            return -1;  
+        }
+    } else {
+        client->config.ip_broker = NULL; // Se ele for nulo, deixa NULL
+    }
+
+    
+    client->config.keep_alive = config->keep_alive;
     client->config.port_broker = config->port_broker;
     client->config.default_qos = config->default_qos;
-    return 0;
+
+    return 0;  // Success
 }
 
 client_config_t get_config(client_t *client){
