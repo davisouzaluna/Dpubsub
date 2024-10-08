@@ -10,19 +10,12 @@ This code has an API to connect to a MQTT broker. The functions are implemented 
 #include <stdio.h>
 #include "client.h"
 
-/*
-Connect to the broker. 
-*/
-int client_connect_params(char *client_id, uint16_t keep_alive, char *ip_broker, uint16_t port_broker, uint8_t version);
 
 /*
 Connect to the broker using the client structure.
 */
 int client_connect(client_t *client);
-/*
-Disconnect from the broker. Free the resources.
-*/
-int client_disconnect_params(char *client_id, uint16_t keep_alive, char *ip_broker, uint16_t port_broker, uint8_t version);
+
 
 /*
 Disconnect from the broker using the client structure. Free the resources.
@@ -36,6 +29,9 @@ int client_subscribe(client_t *client,const char *topic, uint16_t message_id);
 
 /*
 Sending the packet UNSUBSCRIBE to the broker.
+
+TODO: Add the QoS parameter.
+TODO: Add the client structure.
 */
 int client_unsubscribe(const char *topic, uint16_t message_id);
 

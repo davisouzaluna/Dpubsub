@@ -6,20 +6,7 @@
 char *global_ip_broker = "91.121.93.94";
 uint16_t global_port_broker = 1883;
 
-// Função para testar a conexão do cliente com parâmetros individuais
-void test_client_connect_params() {
-    char *client_id = "test_client";
-    uint16_t keep_alive = 60;
-    uint8_t version = 4;
 
-    int result = client_connect_params(client_id, keep_alive, global_ip_broker, global_port_broker, version);
-    if (result == 0) {
-        printf("Client connected successfully using parameters!\n");
-    } else {
-        printf("Failed to connect client using parameters.\n");
-    }
-    
-}
 
 // Função para testar a conexão do cliente com uma estrutura `client_t`
 void test_client_connect() {
@@ -121,8 +108,6 @@ void test_client_subscribe() {
 
 // Função principal para rodar os testes
 int main() {
-    printf("Testing client connect with parameters...\n");
-    test_client_connect_params();
 
     printf("\nTesting client connect with structure...\n");
     test_client_connect();
