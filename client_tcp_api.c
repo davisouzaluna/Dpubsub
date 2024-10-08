@@ -46,6 +46,23 @@ int client_subscribe(client_t *client,const char *topic, uint16_t message_id){
     return 0;
 };
 
+int client_unsubscribe(client_t *client, const char *topic, uint16_t message_id){
+    int num_topics = 1; //aqui tbm deve ser implementada uma abstracao para o numero de topicos
+    int topic_length = strlen(topic);
+    int buffer_size_unsub = 2 + 2 + (2 + topic_length);
+
+    char buffer[buffer_size_unsub];
+    int unsubscribe = serialize_unsubscribe(UNSUBSCRIBE, buffer, sizeof(buffer), topic, message_id);
+    if(unsubscribe < 0){
+        return -1;
+    }
+    int send_unsubscribe = send_bytes_to_server(get_socket_fd(client), buffer, unsubscribe);
+    if(send_unsubscribe != 0){
+        return -1;
+    }
+    return 0;
+}
+
 int client_publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
     if(publish(client, topic, message, message_id, retain, dup)!=0){
         printf("Failed to publish message\n");

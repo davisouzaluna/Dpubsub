@@ -33,7 +33,7 @@ Sending the packet UNSUBSCRIBE to the broker.
 TODO: Add the QoS parameter.
 TODO: Add the client structure.
 */
-int client_unsubscribe(const char *topic, uint16_t message_id);
+int client_unsubscribe(client_t *client, const char *topic, uint16_t message_id);
 
 /*
 Sending a PUBLISH packet to an broker.

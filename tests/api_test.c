@@ -106,6 +106,30 @@ void test_client_subscribe() {
     client_disconnect(&client);
 }
 
+void test_client_unsubscribe(){
+    client_t client;
+    client_config_t config;
+
+    char *client_id = "test_unsubscribe";
+    config.client_id = client_id;
+    config.keep_alive = 60;
+    config.ip_broker = global_ip_broker;
+    config.port_broker = global_port_broker;
+    config.default_qos = 0;
+
+    create_client(&client, &config, 0);
+    client_connect(&client);
+
+    int result0 = client_subscribe(&client, "test/topic", 1);
+    int result = client_unsubscribe(&client, "test/topic", 1);
+
+    if(result == 0){
+        printf("Unsubscribed to topic successfully!\n");
+    }else{
+        printf("Failed to unsubscribe to topic.\n");
+    }
+}
+
 // Função principal para rodar os testes
 int main() {
 
@@ -117,6 +141,10 @@ int main() {
 
     printf("\nTesting client subscribe...\n");
     test_client_subscribe();
+
+    printf("testing unsubscribe\n");
+    test_client_unsubscribe();
+
 
     return 0;
 }
