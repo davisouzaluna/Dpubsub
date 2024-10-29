@@ -39,7 +39,7 @@ typedef struct {
 }client_t;
 
 typedef struct {
-    char *topic;    // Tópico da mensagem
+    const char *topic;    // Tópico da mensagem
     char *payload;  // Dados da mensagem
     uint8_t qos;    // Qualidade de Serviço
     uint8_t retain; // Retain. Inicialmente não será utilizado. Portanto será 0. Quando for utilizar, altere para 1
@@ -93,7 +93,7 @@ int subscribe_topic(client_t *client, const char *topic, protocol_t protocol);
 /*
 Publish in a topic. The client must be connected before publishing. The message_id is used to identify the message. The QoS is the quality of service. The retain is used to retain the message. The dup is used to duplicate the message.
 */
-int publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup);
+int publish(client_t *client, const char *topic, char *message, uint16_t message_id, uint8_t retain, uint8_t dup);
 
 
 // Unsubscribe from a topic

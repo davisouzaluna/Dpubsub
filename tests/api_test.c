@@ -3,7 +3,7 @@
 #include "client_tcp_api.h"
 
 // Variáveis globais para IP e porta do broker
-char *global_ip_broker = "91.121.93.94";
+char *global_ip_broker = "35.172.255.228";
 uint16_t global_port_broker = 1883;
 
 

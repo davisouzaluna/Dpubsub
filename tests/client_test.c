@@ -91,7 +91,7 @@ int main() {
 
     // testar a publicacao de dados para o broker
     const char *topic = "dpubsub";
-    const char *msg = "opa1";
+    char *msg = "opa1";
     uint16_t message_id = 1; // Usado apenas se QoS > 0
     uint8_t qos = get_qos(&client); // Nível de QoS(testando o getter)
     uint8_t retain = 0; // Não reter a mensagem

@@ -143,6 +143,7 @@ int send_message_TCP(client_t *client, message_t *msg){
     return 0;
 };
 
+//TODO: Mudar a chamada do switch case(send_message_TCP) para 
 int send_message(client_t *client, message_t *msg, protocol_t protocol){
     if(!client || !msg){
         return -1;
@@ -160,7 +161,7 @@ int free_message(message_t *msg){
         return -1;
     }
     if(msg->topic){
-        free(msg->topic);
+        free((char*)msg->topic);
         msg->topic = NULL;
     }
     if(msg->payload){
@@ -236,7 +237,7 @@ int subscribe_topic(client_t *client, const char *topic, protocol_t protocol){
     return 0;
 };
 
-int publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
+int publish(client_t *client, const char *topic,  char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
     //char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
     char buffer3[256];
     /*

@@ -110,7 +110,7 @@ int encode_remaining_length(size_t length, char *buffer, size_t buffer_size) {
     return index; // Retorna o número de bytes usados
 }
 
-int serialize_publish(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, const char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup) {
+int serialize_publish(packet_type_code_t packet_type, char *buffer, size_t buffer_size, const char *topic, char *message, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup) {
     if (buffer == NULL || topic == NULL || message == NULL) {
         return -1; // parametros invalidos
     }

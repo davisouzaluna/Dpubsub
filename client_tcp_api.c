@@ -63,7 +63,7 @@ int client_unsubscribe(client_t *client, const char *topic, uint16_t message_id)
     return 0;
 }
 
-int client_publish(client_t *client, const char *topic, const char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
+int client_publish(client_t *client, const char *topic, char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
     if(publish(client, topic, message, message_id, retain, dup)!=0){
         printf("Failed to publish message\n");
         return -1;
@@ -77,7 +77,7 @@ int client_pingreq(client_t *client){
     if(create_packet!=0){
         return -1;
     }
-    if(send_message(client, buffer, PROTOCOL_TCP)!=0){
+    if(send_bytes_to_server(client->socket,buffer,sizeof(buffer))!=0){
         return -1;
     }
     return 0;
