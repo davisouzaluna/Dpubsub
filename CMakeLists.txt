@@ -17,4 +17,4 @@ add_library (packets STATIC packets.c)
 add_library (client_tcp_api STATIC client_tcp_api.c)
 
 # Adiciona o diretório de testes
-add_subdirectory(tests)
+add_subdirectory(examples)
