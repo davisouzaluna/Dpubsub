@@ -1,6 +1,6 @@
 // tests/api_test.c
 #include <stdio.h>
-#include "client_tcp_api.h"
+#include "../lib/src/client_tcp_api.h"
 
 // Variáveis globais para IP e porta do broker
 char *global_ip_broker = "35.172.255.228";

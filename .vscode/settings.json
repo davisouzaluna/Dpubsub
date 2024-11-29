@@ -7,6 +7,8 @@
         "packets.h": "c",
         "netdb.h": "c",
         "types.h": "c",
-        "client_tcp_api.h": "c"
+        "client_tcp_api.h": "c",
+        "dpubsub.h": "c",
+        "stdio.h": "c"
     }
 }

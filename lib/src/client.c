@@ -9,6 +9,8 @@ License: MIT
 
 
 */
+
+
 int create_client(client_t *client, client_config_t *config, size_t buffer_size){
     if (!client || !config) {
         return -1; // Verifica se os ponteiros são válidos

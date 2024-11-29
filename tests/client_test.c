@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "client.h"
-#include "packets.h"
+#include "../lib/src/client.h"
+#include "../lib/src/packets.h"
 
 int main() {
     client_t client;
@@ -12,7 +12,7 @@ int main() {
     // Configuração do cliente
     config.client_id = "davifurao";
     config.keep_alive = 60;
-    config.ip_broker = "91.121.93.94"; // IP de teste
+    config.ip_broker = "35.172.255.228"; // IP de teste
     config.port_broker = 1883; // Porta do servidor de teste: ../transport/tcp/tests/server.c
     config.default_qos = 0;
 

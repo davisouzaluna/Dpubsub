@@ -12,7 +12,7 @@ This code shows the implementation of a MQTT Client.
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "transport/tcp/tcp_client.h"
+#include "./transport/tcp/tcp_client.h"
 
 #define INITIAL_BUFFER_SIZE 1024 // Tamanho inicial do buffer de recebimento
 
