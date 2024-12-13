@@ -10,6 +10,48 @@ License: MIT
 
 */
 
+//==================================================Callbacks=========================================================
+
+
+
+// Define Only the callback function for the on_publish
+int define_publish_cb(client_t *client, int (on_publish)(message_t *msg)){
+    if(!client){
+        return -1;
+    }
+    client->callbacks.on_publish.callback = on_publish;
+    return 0;
+}
+
+// After define the callbacks, this function will allocate the callback function to respective client
+int set_callbacks(client_t *client, callback_type_t callbacks){
+   if(!client){
+        return -1;
+   }
+   client->callbacks.on_connect = callbacks.on_connect;
+   client->callbacks.on_disconnect = callbacks.on_disconnect;
+   client->callbacks.on_publish = callbacks.on_publish;
+   client->callbacks.on_subscribe = callbacks.on_subscribe;
+   client->callbacks.on_unsubscribe = callbacks.on_unsubscribe;
+   return 0;
+}
+//clear callbacks and data
+int clear_all_callbacks(client_t *client){
+    if(!client){
+        return -1;
+    }
+    client->callbacks.on_connect.callback = NULL;
+    client->callbacks.on_connect.data = NULL;
+    client->callbacks.on_disconnect.callback = NULL;
+    client->callbacks.on_disconnect.data = NULL;
+    client->callbacks.on_publish.callback = NULL;
+    client->callbacks.on_publish.data = NULL;
+    client->callbacks.on_subscribe.callback = NULL;
+    client->callbacks.on_subscribe.data = NULL;
+    client->callbacks.on_unsubscribe.callback = NULL;
+    client->callbacks.on_unsubscribe.data = NULL;
+    return 0;
+}
 
 int create_client(client_t *client, client_config_t *config, size_t buffer_size){
     if (!client || !config) {

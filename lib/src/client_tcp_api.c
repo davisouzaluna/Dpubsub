@@ -82,3 +82,7 @@ int client_pingreq(client_t *client){
     }
     return 0;
 }
+
+int define_publish_cb(client_t *client, int (on_publish)(message_t *msg)){
+    
+};
