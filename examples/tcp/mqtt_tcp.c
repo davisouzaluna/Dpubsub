@@ -10,7 +10,7 @@ int main() {
     
     char *client_id = "mqtt_TCP_client";
     uint16_t keep_alive_interval = 60; 
-    char *ip_broker = "35.172.255.228";
+    char *ip_broker = "35.172.255.228"; //endereco do emqx
     uint16_t port_broker = 1883;
     uint8_t default_qos = 0;
     char *topic = "dpubsub";
