@@ -31,27 +31,13 @@ typedef struct {
     uint8_t default_qos;   // Qualidade de Serviço padrão
 }client_config_t;
 
-//Struct to define callback functions
-typedef struct {
-    void *data; // Data to be passed to the callback
-    void (*callback)(void *data); // Callback function
-}callback_t;
 
-//struct to define the type of callback
-typedef struct {
-    callback_t on_connect;
-    callback_t on_disconnect;
-    callback_t on_publish;
-    callback_t on_subscribe;
-    callback_t on_unsubscribe;
-} callback_type_t;
 
 typedef struct {
     int socket;          // Descriptor do socket para a conexão com o broker
     char *buffer;        // Buffer para receber e enviar dados
     size_t buffer_size;  // Tamanho do buffer
     client_config_t config;  // Configurações do cliente
-    callback_type_t callbacks; // Callbacks
 }client_t;
 
 
@@ -64,14 +50,12 @@ typedef struct {
 }message_t;
 // ==========================================Callbacks==========================================
 
-int default_on_publish_cb(message_t *msg);
+//TODO: Proofs of concept
 
-int default_on_subscribe_cb(message_t *msg);
 
-int default_on_unsubscribe_cb(message_t *msg);
+// Set the callbacks
 
-int default_on_connect_cb(void *data);
-
+//================================================================================================
 /*
 Function to create a client. It receives a client_t pointer, a client_config_t pointer and a buffer size. If the buffer size is not provided, it will use the default size defined 
 in the macro INITIAL_BUFFER_SIZE.It returns 0 if the client is created successfully, -1 otherwise.
