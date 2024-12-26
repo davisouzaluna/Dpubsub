@@ -10,6 +10,88 @@ License: MIT
 
 */
 
+//==================================================Callbacks=========================================================
+
+//define default callback functions
+int on_publish(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    char *payload = msg->payload;
+    printf("Message published in topic '%s': %s\n", topic, payload);
+    return 0;
+};
+int on_subscribe(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    printf("Subscribed to topic '%s'\n", topic);
+    return 0;
+};
+int on_disconnect(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    printf("Disconnected from broker\n");
+    return 0;
+};
+int on_connect(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    printf("Connected to broker\n");
+    return 0;
+};
+int on_unsubscribe(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    printf("Unsubscribed from topic '%s'\n", topic);
+    return 0;
+};
+int on_message(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    char *payload = msg->payload;
+    printf("Message received in topic '%s': %s\n", topic, payload);
+    return 0;
+};
+
+int define_default_callback(client_t *client){
+    if(!client){
+        return -1;
+    }
+    
+    client->config.callbacks.on_subscribe = on_subscribe;
+    client->config.callbacks.on_publish = on_publish;
+    client->config.callbacks.on_disconnect = on_disconnect;
+    client->config.callbacks.on_connect = on_connect;
+    client->config.callbacks.on_unsubscribe = on_unsubscribe;
+    client->config.callbacks.on_message =  on_message;
+    return 0;
+}
+
+int define_null_cb(client_t *client){
+    if(!client){
+        return -1;
+    }
+    client->config.callbacks.on_subscribe = NULL;
+    client->config.callbacks.on_publish = NULL;
+    client->config.callbacks.on_disconnect = NULL;
+    client->config.callbacks.on_connect = NULL;
+    client->config.callbacks.on_unsubscribe = NULL;
+    client->config.callbacks.on_message =  NULL;
+    return 0;
+}
+
+//====================================================================================================================
+
+
 
 int create_client(client_t *client, client_config_t *config, size_t buffer_size){
     if (!client || !config) {
@@ -44,6 +126,16 @@ int create_client(client_t *client, client_config_t *config, size_t buffer_size)
         printf("Error allocating memory for buffer\n");
         return -1;
     }
+
+    if(define_default_callback(client)!=0){ //define os callbacks padrao
+        free(client->config.ip_broker);
+        free(client->config.client_id);
+        free(client->buffer);
+        printf("Error defining default callback\n");
+        return -1;
+    }
+    
+    if(config)
     client->socket = -1; // Inicializa o socket com -1(ainda nao conectado)
     return 0;
 };
@@ -113,6 +205,12 @@ int disconnect_client_TCP(client_t *client){
     if(close_connection < 0){
         fprintf(stderr, "Failed to disconnect client\n");
         return -1;
+    }
+
+    //callback
+    if(client->config.callbacks.on_disconnect){
+        message_t *msg;
+        client->config.callbacks.on_disconnect(msg);
     }
 };
 
@@ -217,26 +315,48 @@ int receive_message(client_t *client, protocol_t protocol){
     }
 }
 
-int subscribe_topic(client_t *client, const char *topic, protocol_t protocol){
-    //char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
-    char buffer[256];
-    if(buffer == NULL){
-        return -1;
+int subscribe_topic(client_t *client, const char *topic, protocol_t protocol)
+{
+    // char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    if (protocol = PROTOCOL_TCP)
+    {
+        char buffer[256];
+        if (buffer == NULL)
+        {
+            return -1;
+        }
+        int message_id = 1;        // Gerar um id de mensagem
+        int qos = get_qos(client); // Qualidade de serviço
+        int create_packet = serialize_subscribe(SUBSCRIBE, buffer, sizeof(buffer), topic, message_id, qos);
+        if (create_packet < 0)
+        {
+            // free(buffer);
+            return -1;
+        }
+
+        if (send_bytes_to_server(get_socket_fd(client), buffer, create_packet) != 0)
+        {
+            fprintf(stderr, "Failed to send SUBSCRIBE packet\n");
+            return -1;
+        }
+
+        // callback
+        uint8_t retain = 0;
+        message_t *msg;
+        msg->topic = topic;
+
+        msg->qos = qos;
+        // printf("QoS: %d\n", msg->qos);
+        msg->retain = retain;
+
+        if (client->config.callbacks.on_subscribe)
+        {
+            client->config.callbacks.on_subscribe(msg);
+        }
+
+        // free(buffer);
+        return 0;
     }
-    int message_id = 1; //Gerar um id de mensagem
-    int qos = get_qos(client); //Qualidade de serviço
-    int create_packet = serialize_subscribe(SUBSCRIBE, buffer, sizeof(buffer), topic, message_id, qos);
-    if(create_packet < 0){
-        //free(buffer);
-        return -1;
-    }
-    int send_packet = send_bytes_to_server(get_socket_fd(client), buffer, create_packet);
-    if(send_packet < 0){
-        //free(buffer);
-        return -1;
-    }
-    //free(buffer);
-    return 0;
 };
 
 int publish(client_t *client, const char *topic,  char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
@@ -272,6 +392,11 @@ int publish(client_t *client, const char *topic,  char *message, uint16_t messag
     }
     free(buffer);
     */
+
+   //callback
+   if(client->config.callbacks.on_publish){
+       client->config.callbacks.on_publish(msg);
+   }
     return 0;
 }
 

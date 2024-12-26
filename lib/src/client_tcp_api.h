@@ -45,4 +45,44 @@ Check connection. Wait for the broker to send a PINGRESP packet.
 */
 int client_pingreq(client_t *client);
 
+
+/*
+=======================================Callbacks=======================================
+*/
+
+int define_publish_cb(client_t *client, int (on_publish)(message_t *msg));
+
+
+int on_publish(message_t *msg);
+
+/*
+called after subscribe ACK.
+QoS 0 => ACK from Broker
+QoS 1 => SUBACK from Broker
+Is necessary to define the callback function.
+*/
+int define_subscribe_cb(client_t *client, int (on_subscribe)(message_t *msg));
+
+
+/*
+Define an default callback function to subscribe.
+*/
+int default_subscribe_cb(client_t *client);
+
+/*This function receive any message from the broker. It`s called if  */
+int receive_message_sub_cb(client_t *client ,int (on_message)(message_t *msg));
+
+/*It`s a default function called after receive a message after subscribe */
+int on_message(message_t *msg);
+
+
+/*
+Handle the message received from the broker.
+For example: PINGREQ, PINGRESP, SUBACK, UNSUBACK, PUBACK, PUBREC, PUBREL, PUBCOMP, CONNACK, DISCONNECT, CONNECT, PUBLISH.
+
+IF the message is PUBLISH(after send SUBSCRIBE message to broker), the message is sent to the callback function.
+*/
+int handle_message(client_t *client);
+
+
 #endif
