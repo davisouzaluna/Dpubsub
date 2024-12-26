@@ -206,6 +206,12 @@ int disconnect_client_TCP(client_t *client){
         fprintf(stderr, "Failed to disconnect client\n");
         return -1;
     }
+
+    //callback
+    if(client->config.callbacks.on_disconnect){
+        message_t *msg;
+        client->config.callbacks.on_disconnect(msg);
+    }
 };
 
 int disconnect_client(client_t *client, protocol_t protocol){
@@ -309,26 +315,48 @@ int receive_message(client_t *client, protocol_t protocol){
     }
 }
 
-int subscribe_topic(client_t *client, const char *topic, protocol_t protocol){
-    //char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
-    char buffer[256];
-    if(buffer == NULL){
-        return -1;
+int subscribe_topic(client_t *client, const char *topic, protocol_t protocol)
+{
+    // char buffer = (char*)malloc(256);//Criar inicialmente um buffer diferente do cliente(posteriormente terei que alocar e desalocar o buffer da estrutura do cliente)
+    if (protocol = PROTOCOL_TCP)
+    {
+        char buffer[256];
+        if (buffer == NULL)
+        {
+            return -1;
+        }
+        int message_id = 1;        // Gerar um id de mensagem
+        int qos = get_qos(client); // Qualidade de serviço
+        int create_packet = serialize_subscribe(SUBSCRIBE, buffer, sizeof(buffer), topic, message_id, qos);
+        if (create_packet < 0)
+        {
+            // free(buffer);
+            return -1;
+        }
+
+        if (send_bytes_to_server(get_socket_fd(client), buffer, create_packet) != 0)
+        {
+            fprintf(stderr, "Failed to send SUBSCRIBE packet\n");
+            return -1;
+        }
+
+        // callback
+        uint8_t retain = 0;
+        message_t *msg;
+        msg->topic = topic;
+
+        msg->qos = qos;
+        // printf("QoS: %d\n", msg->qos);
+        msg->retain = retain;
+
+        if (client->config.callbacks.on_subscribe)
+        {
+            client->config.callbacks.on_subscribe(msg);
+        }
+
+        // free(buffer);
+        return 0;
     }
-    int message_id = 1; //Gerar um id de mensagem
-    int qos = get_qos(client); //Qualidade de serviço
-    int create_packet = serialize_subscribe(SUBSCRIBE, buffer, sizeof(buffer), topic, message_id, qos);
-    if(create_packet < 0){
-        //free(buffer);
-        return -1;
-    }
-    int send_packet = send_bytes_to_server(get_socket_fd(client), buffer, create_packet);
-    if(send_packet < 0){
-        //free(buffer);
-        return -1;
-    }
-    //free(buffer);
-    return 0;
 };
 
 int publish(client_t *client, const char *topic,  char *message, uint16_t message_id, uint8_t retain, uint8_t dup){

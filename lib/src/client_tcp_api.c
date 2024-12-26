@@ -38,7 +38,6 @@ int client_disconnect(client_t *client){
 }
 
 int client_subscribe(client_t *client,const char *topic, uint16_t message_id){
-    
     if(subscribe_topic(client, topic, PROTOCOL_TCP)!=0){
         return -1;
         printf("Failed to subscribe to topic\n");
