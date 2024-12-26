@@ -23,12 +23,45 @@ typedef enum {
     PROTOCOL_TCP
 } protocol_t;
 
+
+typedef enum {
+    ON_PUBLISH,
+    ON_SUBSCRIBE,
+    ON_DISCONNECT,
+    ON_CONNECT,
+    ON_UNSUBSCRIBE,
+    ON_MESSAGE,
+}callback_type_t;
+
+
+typedef struct message_t{
+    const char *topic;    // Tópico da mensagem
+    char *payload;  // Dados da mensagem
+    uint8_t qos;    // Qualidade de Serviço
+    uint8_t retain; // Retain. Inicialmente não será utilizado. Portanto será 0. Quando for utilizar, altere para 1
+}message_t;
+
+
+
+/* Struct to define the callback functions. 
+*/
+typedef struct {
+    int (*on_subscribe)(message_t *msg);
+    int (*on_publish)(message_t *msg);
+    int(*on_disconnect)(message_t *msg);
+    int (*on_connect)(message_t *msg);
+    int (*on_unsubscribe)(message_t *msg);
+    int (*on_message)(message_t *msg);
+} config_callbacks_t;
+
+// Struct to define the client configuration
 typedef struct {
     char *client_id;       // Identificador do cliente (Client ID)
     uint16_t keep_alive;   // Tempo de keep-alive em segundos
     char *ip_broker;       // IP do broker
     uint16_t port_broker;  // Porta do broker
     uint8_t default_qos;   // Qualidade de Serviço padrão
+    config_callbacks_t callbacks; // Callbacks. Its defined by struct config_callbacks_t
 }client_config_t;
 
 
@@ -42,18 +75,31 @@ typedef struct {
 
 
 
-typedef struct {
-    const char *topic;    // Tópico da mensagem
-    char *payload;  // Dados da mensagem
-    uint8_t qos;    // Qualidade de Serviço
-    uint8_t retain; // Retain. Inicialmente não será utilizado. Portanto será 0. Quando for utilizar, altere para 1
-}message_t;
 // ==========================================Callbacks==========================================
 
 //TODO: Proofs of concept
 
+/*
+This function define the default callback functions. It returns 0 if the callback is defined successfully, -1 otherwise.
+*/
+int define_default_callback(client_t *client);
 
-// Set the callbacks
+/*
+This function set a callback function
+*/
+int set_callback(client_t *client, callback_type_t type, config_callbacks_t *callbacks);
+
+/*
+Default callback functions
+*/
+int on_publish(message_t *msg);
+int on_subscribe(message_t *msg);
+int on_disconnect(message_t *msg);
+int on_connect(message_t *msg);
+int on_unsubscribe(message_t *msg);
+int on_message(message_t *msg);
+
+
 
 //================================================================================================
 /*

@@ -12,7 +12,84 @@ License: MIT
 
 //==================================================Callbacks=========================================================
 
+//define default callback functions
+int on_publish(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    char *payload = msg->payload;
+    printf("Message published in topic '%s': %s\n", topic, payload);
+    return 0;
+};
+int on_subscribe(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    printf("Subscribed to topic '%s'\n", topic);
+    return 0;
+};
+int on_disconnect(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    printf("Disconnected from broker\n");
+    return 0;
+};
+int on_connect(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    printf("Connected to broker\n");
+    return 0;
+};
+int on_unsubscribe(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    printf("Unsubscribed from topic '%s'\n", topic);
+    return 0;
+};
+int on_message(message_t *msg){
+    if(!msg){
+        return -1;
+    }
+    char *topic = (char*)msg->topic;
+    char *payload = msg->payload;
+    printf("Message received in topic '%s': %s\n", topic, payload);
+    return 0;
+};
 
+int define_default_callback(client_t *client){
+    if(!client){
+        return -1;
+    }
+    
+    client->config.callbacks.on_subscribe = on_subscribe;
+    client->config.callbacks.on_publish = on_publish;
+    client->config.callbacks.on_disconnect = on_disconnect;
+    client->config.callbacks.on_connect = on_connect;
+    client->config.callbacks.on_unsubscribe = on_unsubscribe;
+    client->config.callbacks.on_message =  on_message;
+    return 0;
+}
+
+int define_null_cb(client_t *client){
+    if(!client){
+        return -1;
+    }
+    client->config.callbacks.on_subscribe = NULL;
+    client->config.callbacks.on_publish = NULL;
+    client->config.callbacks.on_disconnect = NULL;
+    client->config.callbacks.on_connect = NULL;
+    client->config.callbacks.on_unsubscribe = NULL;
+    client->config.callbacks.on_message =  NULL;
+    return 0;
+}
+
+//====================================================================================================================
 
 
 
@@ -49,6 +126,16 @@ int create_client(client_t *client, client_config_t *config, size_t buffer_size)
         printf("Error allocating memory for buffer\n");
         return -1;
     }
+
+    if(define_default_callback(client)!=0){ //define os callbacks padrao
+        free(client->config.ip_broker);
+        free(client->config.client_id);
+        free(client->buffer);
+        printf("Error defining default callback\n");
+        return -1;
+    }
+    
+    if(config)
     client->socket = -1; // Inicializa o socket com -1(ainda nao conectado)
     return 0;
 };
@@ -277,6 +364,11 @@ int publish(client_t *client, const char *topic,  char *message, uint16_t messag
     }
     free(buffer);
     */
+
+   //callback
+   if(client->config.callbacks.on_publish){
+       client->config.callbacks.on_publish(msg);
+   }
     return 0;
 }
 

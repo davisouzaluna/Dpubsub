@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(myapp)
-find_package(dpubsub REQUIRED)
+project(mqtt_tcp_api_example)
 
-add_executable(my_app mqtt_tcp.c)
-target_link_libraries(my_app PRIVATE dpubsub)
-
+add_executable(mqtt_tcp_api_example mqtt_tcp.c)
+target_link_libraries(mqtt_tcp_api_example PRIVATE dpubsub)
