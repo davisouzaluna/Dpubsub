@@ -45,7 +45,7 @@ typedef struct message_t{
 
 /* Struct to define the callback functions. 
 */
-typedef struct {
+typedef struct config_callbacks_t{
     int (*on_subscribe)(message_t *msg);
     int (*on_publish)(message_t *msg);
     int(*on_disconnect)(message_t *msg);
@@ -55,7 +55,7 @@ typedef struct {
 } config_callbacks_t;
 
 // Struct to define the client configuration
-typedef struct {
+typedef struct client_config_t{
     char *client_id;       // Identificador do cliente (Client ID)
     uint16_t keep_alive;   // Tempo de keep-alive em segundos
     char *ip_broker;       // IP do broker
