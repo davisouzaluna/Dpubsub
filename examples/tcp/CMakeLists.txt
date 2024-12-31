@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(mqtt_tcp_api_example)
 
 add_executable(mqtt_tcp_api_example mqtt_tcp.c)
