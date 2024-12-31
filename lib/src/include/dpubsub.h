@@ -16,13 +16,8 @@ About: dpubsub header file. Contains the functions to configure, connect, discon
 This Enum will contain the protocols that will be used to connect to the broker. 
 This enum is used by all functions that need to perform some type of transport layer service
 
-Used by:
-
-dpubsub_connect()
-dpubsub_disconnect()
-dpubsub_subscribe()
-dpubsub_unsubscribe()
-dpubsub_publish()
+TODO: If I want to use another protocol, I need to create another function like dpubsub_config_quic() or dpubsub_config_udp()
+TODO: improve the description of this enum
 
 */
 typedef enum {

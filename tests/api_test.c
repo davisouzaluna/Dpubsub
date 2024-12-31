@@ -86,13 +86,7 @@ void test_client_subscribe() {
     config.port_broker = global_port_broker;
     config.default_qos = 0;
 
-    /*
-    set_client_id(&client, "test_subscribe");
-    set_keep_alive(&client, 60);
-    set_broker_ip(&client, global_ip_broker);
-    set_broker_port(&client, global_port_broker);
-    set_config(&client, &config);
-    */
+    
     create_client(&client, &config, 0);
     client_connect(&client);
 

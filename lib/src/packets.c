@@ -344,6 +344,7 @@ int handle_publish(int socket_fd) {
         // Lógica para QoS 2 (PUBREC e PUBREL)
         // PUBREC deve ser enviado aqui
         // A lógica de QoS 2 envolve múltiplas trocas, então considere uma implementação mais detalhada para esse caso
+        //TODO: Implementar lógica para QoS 2
     }
 
     return 0;

@@ -77,8 +77,6 @@ typedef struct {
 
 // ==========================================Callbacks==========================================
 
-//TODO: Proofs of concept
-
 /*
 This function define the default callback functions. It returns 0 if the callback is defined successfully, -1 otherwise.
 */
