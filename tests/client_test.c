@@ -213,6 +213,24 @@ while (tempo < 10) {
     printf("Loop interrompido antes de completar os 10 segundos.\n");
  }
 */
+int messages_qtd = 0;
+int limit_messages_recv = 10;
+while(1){
+    
+
+    int resultado = read_publish_pkt(&client, PROTOCOL_TCP);
+    messages_qtd++;
+    if(resultado < 0){
+        printf("Erro crítico ou conexão fechada. Saindo...\n");
+        break;
+    }
+    if(messages_qtd >= limit_messages_recv){
+        printf("Limite de mensagens alcancado, terminando...\n");
+        break;
+    }
+    sleep(1);
+    printf("Quantidade de mensagens recebidas: %d\n", messages_qtd);
+}
 
     printf("Sleeping for 2 seconds\n");
     sleep(2);

@@ -13,6 +13,7 @@ This code shows the implementation of a MQTT Client.
 #include <unistd.h>
 #include <string.h>
 #include "./transport/tcp/tcp_client.h"
+#include "./packets.h" //include this header to read
 
 #define INITIAL_BUFFER_SIZE 1024 // Tamanho inicial do buffer de recebimento
 
@@ -217,5 +218,13 @@ int set_config(client_t *client, client_config_t *config);
 
 // Get the client configuration. Return an empty config if client is NULL
 client_config_t get_config(client_t *client);
+
+//---------------------Function to handle the broker packet---------------------
+
+/*
+Function to read the broker packet. Will call the on_message callback. This function is similar to the handle_publish function in the packets.c file.
+*/ 
+int read_publish_pkt(client_t *client, protocol_t protocol);
+
 
 #endif // CLIENT_H
