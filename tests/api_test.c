@@ -46,7 +46,7 @@ void test_client_connect() {
 void test_client_publish() {
     client_t client;
     client_config_t config;
-    char *client_id = "test_client_publish";
+    char *client_id = "test_publish";
 
     config.client_id = client_id;
     config.keep_alive = 60;
@@ -64,7 +64,7 @@ void test_client_publish() {
     create_client(&client, &config, 0);
     client_connect(&client);
     
-    int result = client_publish(&client, "dpubsub", "Hello, World!", 1, 0, 0);
+    int result = client_publish(&client, "test/topic", "Hello, World!", 1, 0, 0);
     if (result == 0) {
         printf("Message published successfully!\n");
     } else {
@@ -128,16 +128,16 @@ void test_client_unsubscribe(){
 int main() {
 
     printf("\nTesting client connect with structure...\n");
-    //test_client_connect();
+    test_client_connect();
 
     printf("\nTesting client publish...\n");
     test_client_publish();
 
     printf("\nTesting client subscribe...\n");
-    //test_client_subscribe();
+    test_client_subscribe();
 
     printf("testing unsubscribe\n");
-   // test_client_unsubscribe();
+    test_client_unsubscribe();
 
 
     return 0;

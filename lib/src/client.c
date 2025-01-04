@@ -608,38 +608,5 @@ client_config_t get_config(client_t *client){
     return client->config;
 };
 
-//============================================Functions to handle the broker packet============================================
-
-//TODO: implementar o controle do keep alive para a comunicacao do cliente com o broker
-
-/*
-int what_packet_type(char *buffer){
-    if(!buffer){
-        return -1;
-    }
-    return buffer[0] >> 4;
-}
-*/
-
-int read_publish_pkt(client_t *client, protocol_t protocol){
-    if(!client){
-        return -1;
-    }
-    printf("Reading publish packet\n");
-    // TODO: Considerar o uso do switch case para os diferentes protocolos(feature futura)
-    /*
-    switch(protocol){
-        case PROTOCOL_TCP:
-            return handle_publish(get_socket_fd(client));
-        default:
-            return -1; 
-    }
-    return 0;
-*/
-    return handle_publish(get_socket_fd(client));
-};
-
-
-
 
 

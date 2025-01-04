@@ -1,24 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "../lib/src/client.h"
 #include "../lib/src/packets.h"
-
-/*
-void* thread_publish_test(client_t *client, char *buffer, const char *topic, char *msg, uint16_t message_id, uint8_t qos, uint8_t retain, uint8_t dup, int fd) {
-    char *buffer3 = buffer;
-    int packet_length = serialize_publish(PUBLISH, buffer3, sizeof(buffer3), topic, msg, message_id, qos, retain, dup);
-    while(1){
-        if (send_bytes_to_server(fd, buffer3, packet_length) != 0) {
-        fprintf(stderr, "Failed to send message\n");
-        return NULL;
-    }
-    }
-    
-    return NULL;
-};
-*/
 
 int main() {
     client_t client;
@@ -229,37 +213,6 @@ while (tempo < 10) {
     printf("Loop interrompido antes de completar os 10 segundos.\n");
  }
 */
-
-/*=====================================================
-Criacao da thread para enviar pacotes PUBLISH
-*/
-
-/*
-pthread_t thread_id;
-int fd = get_socket_fd(&client);
-pthread_create(&thread_id, NULL, thread_publish_test(&client, buffer3, topic, msg, message_id,  qos,  retain, dup, fd), NULL);
-pthread_join(thread_id, NULL);
-
-*/
-
-int messages_qtd = 0;
-int limit_messages_recv = 10;
-while(1){
-    
-
-    int resultado = read_publish_pkt(&client, PROTOCOL_TCP);
-    messages_qtd++;
-    if(resultado < 0){
-        printf("Erro crítico ou conexão fechada. Saindo...\n");
-        break;
-    }
-    if(messages_qtd >= limit_messages_recv){
-        printf("Limite de mensagens alcancado, terminando...\n");
-        break;
-    }
-    sleep(1);
-    printf("Quantidade de mensagens recebidas: %d\n", messages_qtd);
-}
 
     printf("Sleeping for 2 seconds\n");
     sleep(2);
