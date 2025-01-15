@@ -3,9 +3,21 @@
 
 
 
+bool verify_value(int value1, int value2){
+    if(value1 == value2){
+        return true;
+    }
+    return false;
+}
+
+
 int client_connect(client_t *client){
     char buffer1[128];
     connect_client(client, PROTOCOL_TCP);
+
+    if(verify_value(get_keep_alive(client), g_keepalive) == false){
+        g_keepalive = get_keep_alive(client);
+    }
 
     int serialize_CONNECT = serialize_connect(CONNECT, buffer1, sizeof(buffer1), get_client_id(client), get_keep_alive(client), 0x04);
     if(serialize_CONNECT < 0){
@@ -38,6 +50,9 @@ int client_disconnect(client_t *client){
 }
 
 int client_subscribe(client_t *client,const char *topic, uint16_t message_id){
+    if(verify_value(get_keep_alive(client), g_keepalive) == false){
+        g_keepalive = get_keep_alive(client);
+    }
     if(subscribe_topic(client, topic, PROTOCOL_TCP)!=0){
         return -1;
         printf("Failed to subscribe to topic\n");
@@ -63,6 +78,9 @@ int client_unsubscribe(client_t *client, const char *topic, uint16_t message_id)
 }
 
 int client_publish(client_t *client, const char *topic, char *message, uint16_t message_id, uint8_t retain, uint8_t dup){
+    if(verify_value(get_keep_alive(client), g_keepalive) == false){
+        g_keepalive = get_keep_alive(client);
+    }
     if(publish(client, topic, message, message_id, retain, dup)!=0){
         printf("Failed to publish message\n");
         return -1;

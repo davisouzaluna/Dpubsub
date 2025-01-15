@@ -8,8 +8,15 @@ This code has an API to connect to a MQTT broker. The functions are implemented 
 #define CLIENT_TCP_API_H
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "client.h"
 
+/*
+This variable is used to control the keep alive time of the client.
+*/
+int g_keepalive;
+
+bool verify_value(int value1, int value2);
 
 /*
 Connect to the broker using the client structure.
