@@ -18,6 +18,7 @@ int g_keepalive;
 
 bool verify_value(int value1, int value2);
 
+int check_keep_alive();
 /*
 Connect to the broker using the client structure.
 */
