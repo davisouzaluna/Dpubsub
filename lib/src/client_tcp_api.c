@@ -1,7 +1,10 @@
 #include "client_tcp_api.h"
 #include "packets.h"
 
-
+/*
+This variable is used to control the keep alive time of the client.
+*/
+int g_keepalive;
 
 bool verify_value(int value1, int value2){
     if(value1 == value2){

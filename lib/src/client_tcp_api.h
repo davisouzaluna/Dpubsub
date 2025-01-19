@@ -11,10 +11,7 @@ This code has an API to connect to a MQTT broker. The functions are implemented 
 #include <stdbool.h>
 #include "client.h"
 
-/*
-This variable is used to control the keep alive time of the client.
-*/
-int g_keepalive;
+
 
 bool verify_value(int value1, int value2);
 
