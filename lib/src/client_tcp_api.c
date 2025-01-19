@@ -31,7 +31,6 @@ int check_keep_alive(client_t *client){
     if(verify_value(get_keep_alive(client), g_keepalive) == false){
         g_keepalive = get_keep_alive(client);
     }
-
     //TODO:Aqui tem que ter uma comparacao(difftime) pra verificar se o tempo "estourou". Sempre enviar um PINGREQ pelo menos quando estiver a 80 por cento 
     //do tempo(evitar desconexao por parte do broker)
 
@@ -41,10 +40,6 @@ int check_keep_alive(client_t *client){
 
     return 0;
 }
-
-/*
-TODO: Criar uma funcao init_client pra iniciar o cliente com os valores padrao(incluindo o keepalive)
-*/
 
 
 int client_connect(client_t *client){
