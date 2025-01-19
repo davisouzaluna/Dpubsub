@@ -6,6 +6,20 @@ This variable is used to control the keep alive time of the client.
 */
 int g_keepalive;
 
+
+int client_pingreq(client_t *client){
+    char buffer[2];
+    int create_packet = serialize_pingreq(PINGREQ, buffer, sizeof(buffer));
+    if(create_packet!=0){
+        return -1;
+    }
+    if(send_bytes_to_server(client->socket,buffer,sizeof(buffer))!=0){
+        return -1;
+    }
+    return 0;
+}
+
+
 bool verify_value(int value1, int value2){
     if(value1 == value2){
         return true;
@@ -21,8 +35,16 @@ int check_keep_alive(client_t *client){
     //TODO:Aqui tem que ter uma comparacao(difftime) pra verificar se o tempo "estourou". Sempre enviar um PINGREQ pelo menos quando estiver a 80 por cento 
     //do tempo(evitar desconexao por parte do broker)
 
+    if(g_keepalive - get_keep_alive(client) >= g_keepalive-1){ // Faltando 1 segundo para o keepalive estourar
+        client_pingreq(client);
+    }
+
     return 0;
 }
+
+/*
+TODO: Criar uma funcao init_client pra iniciar o cliente com os valores padrao(incluindo o keepalive)
+*/
 
 
 int client_connect(client_t *client){
@@ -102,17 +124,6 @@ int client_publish(client_t *client, const char *topic, char *message, uint16_t 
     return 0;
 }
 
-int client_pingreq(client_t *client){
-    char buffer[2];
-    int create_packet = serialize_pingreq(PINGREQ, buffer, sizeof(buffer));
-    if(create_packet!=0){
-        return -1;
-    }
-    if(send_bytes_to_server(client->socket,buffer,sizeof(buffer))!=0){
-        return -1;
-    }
-    return 0;
-}
 
 int define_publish_cb(client_t *client, int (on_publish)(message_t *msg)){
     
