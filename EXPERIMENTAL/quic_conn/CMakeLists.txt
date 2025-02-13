@@ -3,15 +3,15 @@ project(ngtcp2_exemplo)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Encontrar os pacotes necessários
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(NGTCP2 REQUIRED libngtcp2)
 pkg_check_modules(NGTCP2_CRYPTO REQUIRED libngtcp2_crypto_wolfssl)
 pkg_check_modules(WOLFSSL REQUIRED wolfssl)
 pkg_check_modules(OPENSSL REQUIRED openssl)
 
-# Criar o executável
+#criar os executáveis
 add_executable(quic_client quic_client_ngtcp2.c)
+add_executable(quic_srv quic_srv_ngtcp2.c)
 
 # Incluir diretórios das bibliotecas
 target_include_directories(quic_client PRIVATE
@@ -28,3 +28,22 @@ target_link_libraries(quic_client
     ${WOLFSSL_LIBRARIES}
     ${OPENSSL_LIBRARIES}
 )
+
+
+
+
+target_include_directories(quic_srv PRIVATE
+    ${NGTCP2_INCLUDE_DIRS}
+    ${NGTCP2_CRYPTO_INCLUDE_DIRS}
+    ${WOLFSSL_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIRS}
+)
+
+
+target_link_libraries(quic_srv
+    ${NGTCP2_LIBRARIES}
+    ${NGTCP2_CRYPTO_LIBRARIES}   # Adiciona ngtcp2_crypto_wolfssl
+    ${WOLFSSL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+)
+

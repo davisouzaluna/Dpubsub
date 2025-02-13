@@ -42,14 +42,14 @@ int get_new_cid(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token, size_t cidle
 void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
 {
 
-    callback->client_initial = ngtcp2_crypto_client_initial_cb;
+    callback->recv_client_initial = ngtcp2_crypto_recv_client_initial_cb;
     callback->recv_crypto_data = ngtcp2_crypto_recv_crypto_data_cb;
     callback->encrypt = ngtcp2_crypto_encrypt_cb;
     callback->decrypt = ngtcp2_crypto_decrypt_cb;
     callback->hp_mask = ngtcp2_crypto_hp_mask_cb;
-    callback->recv_retry = ngtcp2_crypto_recv_retry_cb;
     callback->rand = custom_ngtcp2_rand;
     callback->get_new_connection_id = get_new_cid;
+    callback->update_key = ngtcp2_crypto_update_key_cb;
     callback->delete_crypto_aead_ctx = ngtcp2_crypto_delete_crypto_aead_ctx_cb;
     callback->delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb;
     callback->get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb;
@@ -73,7 +73,7 @@ int main(){
     client_chosen_version = NGTCP2_PROTO_VER_V1;
     ngtcp2_transport_params_default(&params);
 
-    int cliente;
+    int srv;
     ngtcp2_cid dcid, scid;
     ngtcp2_path path;
     path.local.addr = NULL;  
@@ -84,13 +84,18 @@ int main(){
     generate_cid(&dcid, DCID_LEN);
     generate_cid(&scid, DCID_LEN);
 
-    cliente = ngtcp2_conn_client_new(&conn,&dcid,&scid,&path,client_chosen_version,&callbacks,&settings,&params,NULL,NULL);
 
-    if (cliente != 0) {
-        fprintf(stderr, "Erro ao criar conexão: %d\n", cliente);
+    params.original_dcid = dcid;
+    //If is a server, this param(original_dcid) is True
+    params.original_dcid_present = 1;
+
+    srv = ngtcp2_conn_server_new(&conn,&dcid,&scid,&path,client_chosen_version,&callbacks,&settings,&params,NULL,NULL);
+
+    if (srv != 0) {
+        fprintf(stderr, "Erro ao criar conexão: %d\n", srv);
         return EXIT_FAILURE;
     }
-    printf("Client QUIC criada com sucesso!\n");
+    printf("Server QUIC criada com sucesso!\n");
 
     /*
     ======================================================
@@ -111,8 +116,8 @@ int main(){
     printf("Endereço local: %p, Tamanho: %d\n", path.local.addr, path.local.addrlen);
     printf("Endereço remoto: %p, Tamanho: %d\n", path.remote.addr, path.remote.addrlen);
 
-    printf("Versão escolhida do cliente: 0x%08x\n", client_chosen_version);
-    printf("Resultado da criação da conexão: %d\n", cliente);
+    printf("Versão escolhida do srv: 0x%08x\n", client_chosen_version);
+    printf("Resultado da criação da conexão: %d\n", srv);
 
     printf("settings.cc/ algoritmo: %u\n", settings.cc_algo); //Se printar 1 significa que eh CUBIC
     
