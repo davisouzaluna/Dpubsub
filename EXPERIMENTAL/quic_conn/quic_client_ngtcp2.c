@@ -4,7 +4,7 @@
 #include <time.h>
 #include <ngtcp2/ngtcp2.h>
 
-#define DCID_LEN 18
+#define DCID_LEN 18 //LENGTH OF DCID(test)
 
 
 void custom_ngtcp2_rand(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *rand_ctx) {
