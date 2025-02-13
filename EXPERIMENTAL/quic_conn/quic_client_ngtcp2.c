@@ -1,48 +1,126 @@
-#include <ngtcp2/ngtcp2.h>
+#include <ngtcp2/ngtcp2_crypto.h>
 #include <stdio.h>
-#include <ngtcp2/ngtcp2_crypto_wolfssl.h>
-#include <ngtcp2/ngtcp2_crypto_wolfssl.h>
+#include <stdlib.h>
+#include <time.h>
+#include <ngtcp2/ngtcp2.h>
+
+#define DCID_LEN 18
 
 
-int main(){
+void custom_ngtcp2_rand(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *rand_ctx) {
+    (void) rand_ctx;
+    //srand((unsigned int)time(NULL)); caso queira inicializar
+    for (size_t i = 0; i < destlen; i++) {
+        dest[i] = (uint8_t)rand();
+    }
+}
 
-    typedef struct {
-    ngtcp2_conn *conn;
-    const ngtcp2_cid *dcid;
-    const ngtcp2_cid *scid;
-    const ngtcp2_path *path;
-    uint32_t client_chosen_version;
-    const ngtcp2_callbacks *callbacks;
-    ngtcp2_settings settings;
-    const ngtcp2_transport_params *transport_params;
-    const ngtcp2_mem *mem;
-    void *user_data;
-} quic_client;
+void generate_cid(ngtcp2_cid *cid, size_t len) {
+    if (len > NGTCP2_MAX_CIDLEN) {
+        len = NGTCP2_MAX_CIDLEN; // Evita buffer overflow(limitando o tamanho dele)
+    }
+    cid->datalen = len;
+    for (size_t i = 0; i < len; i++) {
+        cid->data[i] = rand() % 256;
+    }
+}
 
-    quic_client client_config;
-
-    ngtcp2_settings_default(&client_config.settings);
-    ngtcp2_transport_params_default(client_config.transport_params);
+int get_new_cid(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token, size_t cidlen, void *user_data){
+    for (size_t i = 0; i < cidlen; ++i) {
+        cid->data[i] = rand() % 256;  
+    }
+    cid->datalen = cidlen;
     
-    client_config.settings.initial_ts = 0;
-    client_config.client_chosen_version = NGTCP2_PROTO_VER_V1;
-
-    
-    
-    //int tls_ctx;
-    //tls_ctx = ngtcp2_crypto_wolfssl_configure_client_context(&client_config.conn);
-
-    if(
-    ngtcp2_conn_client_new(&client_config.conn, &client_config.dcid, &client_config.scid, &client_config.path, 
-    client_config.client_chosen_version, 
-    &client_config.callbacks, &client_config.settings, 
-    client_config.transport_params, client_config.mem, 
-    client_config.user_data)!=0){
-        printf("Erro ao criar conexão cliente.\n");
+    for (size_t i = 0; i < NGTCP2_STATELESS_RESET_TOKENLEN; ++i) {
+        token[i] = rand() % 256;  
     }
 
-    printf("Conexão cliente criada com sucesso!\n");
-
-
-    printf("Hello, World!\n");
+    return 0;  
 }
+
+
+void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
+{
+
+    callback->client_initial = ngtcp2_crypto_client_initial_cb;
+    callback->recv_crypto_data = ngtcp2_crypto_recv_crypto_data_cb;
+    callback->encrypt = ngtcp2_crypto_encrypt_cb;
+    callback->decrypt = ngtcp2_crypto_decrypt_cb;
+    callback->hp_mask = ngtcp2_crypto_hp_mask_cb;
+    callback->recv_retry = ngtcp2_crypto_recv_retry_cb;
+    callback->rand = custom_ngtcp2_rand;
+    callback->get_new_connection_id = get_new_cid;
+    callback->delete_crypto_aead_ctx = ngtcp2_crypto_delete_crypto_aead_ctx_cb;
+    callback->delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb;
+    callback->get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb;
+    callback->version_negotiation = ngtcp2_crypto_version_negotiation_cb;
+}
+
+int main(){
+    ngtcp2_conn *conn;
+
+    ngtcp2_settings settings;
+
+    ngtcp2_settings_default(&settings);
+
+    ngtcp2_transport_params params;
+
+    uint32_t client_chosen_version;
+
+    ngtcp2_callbacks callbacks;
+    define_callbacks(&callbacks,NULL);
+
+    client_chosen_version = NGTCP2_PROTO_VER_V1;
+    ngtcp2_transport_params_default(&params);
+
+    int cliente;
+    ngtcp2_cid dcid, scid;
+    ngtcp2_path path;
+    path.local.addr = NULL;  
+    path.local.addrlen = 0;
+    path.remote.addr = NULL;
+    path.remote.addrlen = 0;
+
+    generate_cid(&dcid, DCID_LEN);
+    generate_cid(&scid, DCID_LEN);
+
+    cliente = ngtcp2_conn_client_new(&conn,&dcid,&scid,&path,client_chosen_version,&callbacks,&settings,&params,NULL,NULL);
+
+    if (cliente != 0) {
+        fprintf(stderr, "Erro ao criar conexão: %d\n", cliente);
+        return EXIT_FAILURE;
+    }
+    printf("Conexão QUIC criada com sucesso!\n");
+
+    /*
+    ======================================================
+    
+    Here I will print the parameters for correction
+    */
+    printf("DCID: ");
+    for (size_t i = 0; i < dcid.datalen; i++) {
+    printf("%02x", dcid.data[i]);
+    }
+    printf("\n");
+
+    printf("SCID: ");
+    for (size_t i = 0; i < scid.datalen; i++) {
+    printf("%02x", scid.data[i]);
+    }
+    printf("\n");
+    printf("Endereço local: %p, Tamanho: %d\n", path.local.addr, path.local.addrlen);
+    printf("Endereço remoto: %p, Tamanho: %d\n", path.remote.addr, path.remote.addrlen);
+
+    printf("Versão escolhida do cliente: 0x%08x\n", client_chosen_version);
+    printf("Resultado da criação da conexão: %d\n", cliente);
+
+    printf("settings.cc/ algoritmo: %u\n", settings.cc_algo); //Se printar 1 significa que eh CUBIC
+    
+
+
+
+    //=====================================================
+    ngtcp2_conn_del(conn);
+    return EXIT_SUCCESS;
+}
+

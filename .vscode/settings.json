@@ -9,6 +9,7 @@
         "types.h": "c",
         "client_tcp_api.h": "c",
         "dpubsub.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "ngtcp2_crypto_wolfssl.h": "c"
     }
 }

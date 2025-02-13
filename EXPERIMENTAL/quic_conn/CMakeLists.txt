@@ -3,34 +3,28 @@ project(ngtcp2_exemplo)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(
-    ngtcp2_crypto_wolfssl_static
-    ngtcp2
-)
-
-add_executable( quic_client quic_client_ngtcp2.c)
-
+# Encontrar os pacotes necessários
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(NGTCP2 REQUIRED libngtcp2)
+pkg_check_modules(NGTCP2_CRYPTO REQUIRED libngtcp2_crypto_wolfssl)
+pkg_check_modules(WOLFSSL REQUIRED wolfssl)
 pkg_check_modules(OPENSSL REQUIRED openssl)
 
-if (NOT LIBEV_FOUND)
-    set(LIBEV_INCLUDE_DIRS "/usr/include")
-    set(LIBEV_LIBRARIES "/usr/lib/x86_64-linux-gnu/libev.so")
-endif()
+# Criar o executável
+add_executable(quic_client quic_client_ngtcp2.c)
 
+# Incluir diretórios das bibliotecas
 target_include_directories(quic_client PRIVATE
     ${NGTCP2_INCLUDE_DIRS}
+    ${NGTCP2_CRYPTO_INCLUDE_DIRS}
+    ${WOLFSSL_INCLUDE_DIRS}
     ${OPENSSL_INCLUDE_DIRS}
-    ${LIBEV_INCLUDE_DIRS}
 )
 
+# Linkar as bibliotecas necessárias
 target_link_libraries(quic_client
     ${NGTCP2_LIBRARIES}
+    ${NGTCP2_CRYPTO_LIBRARIES}   # Adiciona ngtcp2_crypto_wolfssl
+    ${WOLFSSL_LIBRARIES}
     ${OPENSSL_LIBRARIES}
-    ${LIBEV_LIBRARIES}
 )
-message(STATUS "NGTCP2 include dirs: ${NGTCP2_INCLUDE_DIRS}")
-message(STATUS "OpenSSL include dirs: ${OPENSSL_INCLUDE_DIRS}")
-message(STATUS "libev include dirs: ${LIBEV_INCLUDE_DIRS}")
-message(STATUS "NGTCP2 libraries: ${NGTCP2_LIBRARIES}")
