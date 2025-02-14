@@ -1,0 +1,12 @@
+[submodule "EXPERIMENTAL/quic_conn/nghttp3"]
+    path = EXPERIMENTAL/quic_conn/nghttp3
+    url = https://github.com/ngtcp2/nghttp3
+
+[submodule "EXPERIMENTAL/quic_conn/ngtcp2"]
+    path = EXPERIMENTAL/quic_conn/ngtcp2
+    url = https://github.com/ngtcp2/ngtcp2
+
+[submodule "EXPERIMENTAL/quic_conn/wolfssl"]
+  path = EXPERIMENTAL/quic_conn/wolfssl
+  url = https://github.com/wolfSSL/wolfssl
+  branch = v5.7.4-stable

@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ngtcp2/ngtcp2.h>
+#include <string.h>
+
+
 
 #define DCID_LEN 18 //LENGTH OF DCID(test)
 
@@ -13,6 +16,11 @@ void custom_ngtcp2_rand(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *ra
     for (size_t i = 0; i < destlen; i++) {
         dest[i] = (uint8_t)rand();
     }
+}
+
+//Callback to configure the server context(initially made to creation of TLS context)
+static ngtcp2_conn *get_conn(ngtcp2_crypto_conn_ref *conn_ref) {
+    return (ngtcp2_conn *)conn_ref->user_data;
 }
 
 void generate_cid(ngtcp2_cid *cid, size_t len) {
@@ -26,6 +34,8 @@ void generate_cid(ngtcp2_cid *cid, size_t len) {
 }
 
 int get_new_cid(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token, size_t cidlen, void *user_data){
+    (void)conn;//To avoid warning
+    (void)user_data;//To avoid warning
     for (size_t i = 0; i < cidlen; ++i) {
         cid->data[i] = rand() % 256;  
     }
@@ -57,6 +67,7 @@ void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
 }
 
 int main(){
+    srand((unsigned int)time(NULL));
     ngtcp2_conn *conn;
 
     ngtcp2_settings settings;
@@ -116,16 +127,23 @@ int main(){
     printf("Endereço local: %p, Tamanho: %d\n", path.local.addr, path.local.addrlen);
     printf("Endereço remoto: %p, Tamanho: %d\n", path.remote.addr, path.remote.addrlen);
 
-    printf("Versão escolhida do srv: 0x%08x\n", client_chosen_version);
+    printf("\nVersão escolhida do srv: 0x%08x\n", client_chosen_version);
     printf("Resultado da criação da conexão: %d\n", srv);
 
-    printf("settings.cc/ algoritmo: %u\n", settings.cc_algo); //Se printar 1 significa que eh CUBIC
+    char *algorithm;
+    if(settings.cc_algo == 1){
+        algorithm = "CUBIC";
+    }
+    printf("Algoritmo de congestionamento(valor): %u\n", settings.cc_algo); //Se printar 1 significa que eh CUBIC
+    printf("Algoritmo de congestionamento: %s\n", algorithm);
     
 
 
 
-    //=====================================================
+
     ngtcp2_conn_del(conn);
+   
+
     return EXIT_SUCCESS;
 }
 
