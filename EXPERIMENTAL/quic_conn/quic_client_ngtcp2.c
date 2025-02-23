@@ -58,7 +58,7 @@ void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
 
 int main(){
     ngtcp2_conn *conn;
-
+    srand((unsigned int)time(NULL));
     ngtcp2_settings settings;
 
     ngtcp2_settings_default(&settings);
