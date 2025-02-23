@@ -21,25 +21,30 @@ void generate_cid(ngtcp2_cid *cid, size_t len) {
         len = NGTCP2_MAX_CIDLEN; // Evita buffer overflow(limitando o tamanho dele)
     }
     cid->datalen = len;
+    memset(cid->data, 0, sizeof(cid->data));
     for (size_t i = 0; i < len; i++) {
         cid->data[i] = rand() % 256;
     }
 }
 
-int get_new_cid(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token, size_t cidlen, void *user_data){
-    for (size_t i = 0; i < cidlen; ++i) {
-        cid->data[i] = rand() % 256;  
+int get_new_cid(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token, size_t cidlen, void *user_data) {
+    if (cidlen > NGTCP2_MAX_CIDLEN) {
+        return -1; // Evita buffer overflow
     }
     cid->datalen = cidlen;
-    
-    for (size_t i = 0; i < NGTCP2_STATELESS_RESET_TOKENLEN; ++i) {
-        token[i] = rand() % 256;  
+    memset(cid->data, 0, sizeof(cid->data));
+    for (size_t i = 0; i < cidlen; ++i) {
+        cid->data[i] = rand() % 256;
     }
-
-    return 0;  
+    memset(token, 0, NGTCP2_STATELESS_RESET_TOKENLEN);
+    for (size_t i = 0; i < NGTCP2_STATELESS_RESET_TOKENLEN; ++i) {
+        token[i] = rand() % 256;
+    }
+    return 0;
 }
+
 ngtcp2_conn *my_get_conn(ngtcp2_crypto_conn_ref *ref) {
-    return (ngtcp2_conn *)ref; // Cast para garantir compatibilidade
+    return (ngtcp2_conn *)ref->user_data; // Cast para garantir compatibilidade
 }
 
 
