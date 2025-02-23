@@ -124,6 +124,7 @@ int main(){
     ngtcp2_crypto_conn_ref *client_conn_ref = malloc(sizeof(ngtcp2_crypto_conn_ref));
     if (!client_conn_ref) {
         fprintf(stderr, "Falha ao alocar memória para client_conn_ref\n");
+        free(client_conn_ref);
         return EXIT_FAILURE;
     }
     client_conn_ref->get_conn = my_get_conn;//Alocando a conexao do cliente para o cb
