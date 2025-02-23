@@ -148,6 +148,12 @@ int main(){
         fprintf(stderr, "Erro ao criar o contexto do cliente\n");
         return EXIT_FAILURE;
     }
+
+    /*
+    TODO: function wolfSSL_CTX_set_quic_method 
+    https://www.wolfssl.com/documentation/manuals/wolfssl/wolfSSL-Manual.pdf
+    page 1216
+    */
     printf("debug2\n");
     //==================================configuracao dos CA(teste)
     if (wolfSSL_CTX_load_verify_locations(ctx,"../cert/server.crt",0) !=
