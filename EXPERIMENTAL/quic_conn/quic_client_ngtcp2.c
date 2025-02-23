@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ngtcp2/ngtcp2.h>
+#include <ngtcp2/ngtcp2_crypto_wolfssl.h>
 
 #define DCID_LEN 18 //LENGTH OF DCID(test)
 
@@ -36,6 +37,9 @@ int get_new_cid(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token, size_t cidle
     }
 
     return 0;  
+}
+ngtcp2_conn *my_get_conn(ngtcp2_crypto_conn_ref *ref) {
+    return (ngtcp2_conn *)ref; // Cast para garantir compatibilidade
 }
 
 
@@ -117,6 +121,42 @@ int main(){
     printf("settings.cc/ algoritmo: %u\n", settings.cc_algo); //Se printar 1 significa que eh CUBIC
     
 
+    ngtcp2_crypto_conn_ref *client_conn_ref = malloc(sizeof(ngtcp2_crypto_conn_ref));
+    if (!client_conn_ref) {
+        fprintf(stderr, "Falha ao alocar memória para client_conn_ref\n");
+        return EXIT_FAILURE;
+    }
+    client_conn_ref->get_conn = my_get_conn;//Alocando a conexao do cliente para o cb
+
+
+    client_conn_ref->user_data = conn; 
+    //=====================================================debug das conexoes(referencia delas)
+    ngtcp2_conn *retrieved_conn = client_conn_ref->get_conn(client_conn_ref);
+    printf("Conexão recuperada: %p\n", (void *)retrieved_conn);
+
+    //=====================================================criacao de um ctx pra conexao TLS
+    WOLFSSL_CTX* ctx;
+    wolfSSL_Init();
+    printf("debug1\n");
+    if((ctx = wolfSSL_CTX_new(wolfTLSv1_3_client_method())) == NULL){
+        fprintf(stderr, "Erro ao criar o contexto do cliente\n");
+        return EXIT_FAILURE;
+    }
+    printf("debug2\n");
+    //==================================configuracao dos CA(teste)
+    if (wolfSSL_CTX_load_verify_locations(ctx,"../cert/server.crt",0) !=
+    SSL_SUCCESS) {
+    fprintf(stderr, "Error loading cert/server.crt, please check"
+    "the file. :/\n");
+    exit(EXIT_FAILURE);
+    }
+    printf("debug3\n");\
+
+    //=====================================utilizando a api crypto do ngtcp2 pra nn precisar derivar e instalar as chaves(com qualquer lib SSL)
+    if(ngtcp2_crypto_wolfssl_configure_client_context(ctx)!=0){
+        fprintf(stderr, "Erro ao configurar o contexto do cliente\n");
+        return EXIT_FAILURE;
+    }
 
 
     //=====================================================
