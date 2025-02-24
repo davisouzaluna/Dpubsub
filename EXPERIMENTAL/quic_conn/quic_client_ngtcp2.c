@@ -4,6 +4,9 @@
 #include <time.h>
 #include <ngtcp2/ngtcp2.h>
 #include <ngtcp2/ngtcp2_crypto_wolfssl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <string.h>
 
 #define DCID_LEN 18 //LENGTH OF DCID(test)
 
@@ -48,6 +51,56 @@ ngtcp2_conn *my_get_conn(ngtcp2_crypto_conn_ref *ref) {
 }
 
 
+ngtcp2_path *init_ngtcp2_path(const char *local_ip, uint16_t local_port,
+                              const char *remote_ip, uint16_t remote_port) {
+    ngtcp2_path *path = malloc(sizeof(ngtcp2_path));
+    if (!path) {
+        return NULL; 
+    }
+
+    memset(path, 0, sizeof(ngtcp2_path));
+
+    
+    struct sockaddr_in *local_addr = malloc(sizeof(struct sockaddr_in));
+    if (!local_addr) {
+        free(path);
+        return NULL;
+    }
+    memset(local_addr, 0, sizeof(struct sockaddr_in));
+    local_addr->sin_family = AF_INET;
+    local_addr->sin_port = htons(local_port);
+    local_addr->sin_addr.s_addr = inet_addr(local_ip);
+
+    struct sockaddr_in *remote_addr = malloc(sizeof(struct sockaddr_in));
+    if (!remote_addr) {
+        free(local_addr);
+        free(path);
+        return NULL;
+    }
+    memset(remote_addr, 0, sizeof(struct sockaddr_in));
+    remote_addr->sin_family = AF_INET;
+    remote_addr->sin_port = htons(remote_port);
+    remote_addr->sin_addr.s_addr = inet_addr(remote_ip);
+
+    path->local.addr = (struct sockaddr *)local_addr;
+    path->local.addrlen = sizeof(struct sockaddr_in);
+    path->remote.addr = (struct sockaddr *)remote_addr;
+    path->remote.addrlen = sizeof(struct sockaddr_in);
+
+    return path;
+}
+
+
+void free_ngtcp2_path(ngtcp2_path *path) {
+    if (path) {
+        free(path->local.addr);
+        free(path->remote.addr);
+        free(path);
+    }
+}
+
+
+
 void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
 {
 
@@ -84,16 +137,17 @@ int main(){
 
     int cliente;
     ngtcp2_cid dcid, scid;
-    ngtcp2_path path;
-    path.local.addr = NULL;  
-    path.local.addrlen = 0;
-    path.remote.addr = NULL;
-    path.remote.addrlen = 0;
+    ngtcp2_path *path = init_ngtcp2_path("127.0.0.1", 12345, "192.168.1.1", 12346);
+
+    if (!path) {
+        printf("Erro ao inicializar ngtcp2_path\n");
+        return -1;
+    }
 
     generate_cid(&dcid, DCID_LEN);
     generate_cid(&scid, DCID_LEN);
 
-    cliente = ngtcp2_conn_client_new(&conn,&dcid,&scid,&path,client_chosen_version,&callbacks,&settings,&params,NULL,NULL);
+    cliente = ngtcp2_conn_client_new(&conn,&dcid,&scid,path,client_chosen_version,&callbacks,&settings,&params,NULL,NULL);
 
     if (cliente != 0) {
         fprintf(stderr, "Erro ao criar conexão: %d\n", cliente);
@@ -117,8 +171,8 @@ int main(){
     printf("%02x", scid.data[i]);
     }
     printf("\n");
-    printf("Endereço local: %p, Tamanho: %d\n", path.local.addr, path.local.addrlen);
-    printf("Endereço remoto: %p, Tamanho: %d\n", path.remote.addr, path.remote.addrlen);
+    printf("Endereço local: %p, Tamanho: %d\n", path->local.addr, path->local.addrlen);
+    printf("Endereço remoto: %p, Tamanho: %d\n", path->remote.addr, path->remote.addrlen);
 
     printf("Versão escolhida do cliente: 0x%08x\n", client_chosen_version);
     printf("Resultado da criação da conexão: %d\n", cliente);
@@ -172,6 +226,7 @@ int main(){
 
 
     //=====================================================
+    free_ngtcp2_path(path);
     ngtcp2_conn_del(conn);
     return EXIT_SUCCESS;
 }
