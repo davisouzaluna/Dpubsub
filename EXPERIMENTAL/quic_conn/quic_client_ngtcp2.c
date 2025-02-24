@@ -137,7 +137,7 @@ int main(){
 
     int cliente;
     ngtcp2_cid dcid, scid;
-    ngtcp2_path *path = init_ngtcp2_path("127.0.0.1", 12345, "192.168.1.1", 12346);
+    ngtcp2_path *path = init_ngtcp2_path("127.0.0.1", 12345, "127.0.0.1", 12346);
 
     if (!path) {
         printf("Erro ao inicializar ngtcp2_path\n");
@@ -154,7 +154,7 @@ int main(){
         return EXIT_FAILURE;
     }
     printf("Client QUIC criada com sucesso!\n");
-
+    printf("Endereco de memoria da conexao QUIC: %p\n", (void *)conn);
     /*
     ======================================================
     
@@ -171,8 +171,15 @@ int main(){
     printf("%02x", scid.data[i]);
     }
     printf("\n");
-    printf("Endereço local: %p, Tamanho: %d\n", path->local.addr, path->local.addrlen);
-    printf("Endereço remoto: %p, Tamanho: %d\n", path->remote.addr, path->remote.addrlen);
+
+    //=====================================================debug dos enderecos
+    struct sockaddr_in *local_addr = (struct sockaddr_in *)path->local.addr;
+    
+    printf("Endereço local: %s:%d\n", inet_ntoa(local_addr->sin_addr), ntohs(local_addr->sin_port));
+    
+    struct sockaddr_in *remote_addr = (struct sockaddr_in *)path->remote.addr;
+    //==================================================================================================
+    printf("Endereço remoto: %s:%d\n", inet_ntoa(remote_addr->sin_addr), ntohs(remote_addr->sin_port));
 
     printf("Versão escolhida do cliente: 0x%08x\n", client_chosen_version);
     printf("Resultado da criação da conexão: %d\n", cliente);
@@ -192,7 +199,7 @@ int main(){
     client_conn_ref->user_data = conn; 
     //=====================================================debug das conexoes(referencia delas)
     ngtcp2_conn *retrieved_conn = client_conn_ref->get_conn(client_conn_ref);
-    printf("Conexão recuperada: %p\n", (void *)retrieved_conn);
+    printf("Conexão recuperada(endereco da memoria): %p\n", (void *)retrieved_conn);
 
     //=====================================================criacao de um ctx pra conexao TLS
     WOLFSSL_CTX* ctx;
