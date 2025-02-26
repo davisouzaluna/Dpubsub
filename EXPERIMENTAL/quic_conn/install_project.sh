@@ -48,4 +48,12 @@ sudo make install-strip
 cd .. || exit
 rm -rf ngtcp2
 
+# instala o quictls(lib do openssl)
+git clone --recursive https://github.com/quictls/openssl
+cd openssl
+./config enable-crypto-mdebug enable-ssl3 enable-ssl3-method enable-quic
+make
+sudo make install
+
+
 echo "Instalação concluída! Verifique os binários em /usr/local/bin."

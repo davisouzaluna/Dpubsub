@@ -10,6 +10,14 @@
         "client_tcp_api.h": "c",
         "dpubsub.h": "c",
         "stdio.h": "c",
-        "ngtcp2_crypto_wolfssl.h": "c"
+        "ngtcp2_crypto_wolfssl.h": "c",
+        "quic.h": "c",
+        "options.h": "c",
+        "ssl.h": "c",
+        "stdint.h": "c",
+        "ev.h": "c",
+        "config.h": "c",
+        "ngtcp2_crypto_quictls.h": "c",
+        "errno.h": "c"
     }
 }

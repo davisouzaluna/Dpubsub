@@ -1,0 +1,1 @@
+o live-server deve ser instalado globalmente(npm i -g live-server) em modo de sudo

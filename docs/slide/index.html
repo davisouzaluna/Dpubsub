@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reveal.js Apresentação</title>
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/theme/black.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section data-markdown>
+                <textarea data-template>
+                    <!-- .slide: data-background="#666bfa" -->
+                    ## Vantagens do protocolo QUIC sobre o TCP
+                    ---
+                    Resolve o HOL Blocking atraves da multiplexação de streams, parecido com o que o HTTP/2 faz
+                    ---
+                    Perda de pacotes quando o ARQ(camada de rede) é maior TCP RTO(camada de transporte)
+                    ---
+                    QUIC implementa nativamente o TLS mais atual
+
+                    ---
+                    <!-- .slide: data-background="#666bfa" -->
+                    ## TLS 1.3 vs 1.2
+                    ---
+                    TLS 1.3 é mais rapido que o 1.2. Mesmo sabendo que o TLS 1.3 pode ser executado sobre o TCP, sobre o QUIC ele é ainda mais rapido
+                    ---
+                    RSA e SHA-1 removidos, apenas PFS(Perfect Forward Secrecy), como: DHE e ECDHE
+                    ---
+                    Em suma, os algoritmos efemeros derivam uma nova chave a cada nova conexão, preservando a segurança das comunicações anteriores.
+
+                    ---
+                    Ou seja, se a chave privada for quebrada, apenas as comunicações futuras serão comprometidas, as anteriores não.
+                    ---
+                    Remoção de Downgrade Attacks através da simplificacao dos Handshakes(evitando passar msgs intermediarias, como a chave publica e as cipher suites)
+                    ---
+                    <!-- .slide: data-background="#666bfa" -->
+                    ## Associação com o MQTT
+                    ---
+                    Dados os benefícios do QUIC e a importância do MQTT, a associação entre os dois protocolos se torna uma alternativa viável para o crescente aumento do fluxo de dados entre os dispositivos IoT.
+                    ---
+                    A segurança também é um fator importante, uma vez que o MQTT não possui criptografia nativa, o QUIC pode ser uma alternativa para garantir a segurança dos dados.	
+                    ---
+                    ## O que foi feito até agora
+                    ---
+                    <a href="https://www.mdpi.com/1424-8220/21/17/5737">Fernandez</a> utilizou a a implementação do QUIC-GO e o Paho-MQTT em GO. Ele adaptou Paho-MQTT em go para o QUIC GO
+                    ---
+                    Fernandez fez a análise de desempenho com containers Linux num simulador de redes ns-3. ele se limita a simulações e não considera aspectos práticos mais próximos da realidade, indicando a necessidade de mais investigações em cenários reais e condições de baixa latência. 
+                    ---
+                    <a href="https://www.researchgate.net/publication/328380610_Implementation_and_Analysis_of_QUIC_for_MQTT">Kumar</a> implementou o QUIC para o MQTT em C utilizando o ngtcp2 como lib para a camada de transporte. Essa é a análise mais completa desse tema.
+                    ---
+                    Entretanto Kumar apresenta uma lacuna: Não faz uma análise da latência em situações onde o fluxo de dados é maior, limitando a aplicabilidade dos resultados para sistemas que necessitam de uma maior precisão. 
+                    ---
+                    <a href="https://www.ndss-symposium.org/wp-content/uploads/2020/04/diss2020-23001-paper.pdf">Eggheart</a> fornece  uma visão detalhada dos requisitos de armazenamento, computação, memória e energia para implementar QUIC em dispositivos com recursos limitados.
+                    ---
+                    Eggheart não compara diretamente o QUIC com protocolos alternativos(TCP). Na seção de Trabalhos futuros ele fala que é importante fazer essa comparação com: 
+                    * TCP/TLS
+                    * MQTT
+                    * AMQP
+                    * CoAP
+                    ---
+                    Problemas encontrados nos trabalhos:
+                    * Análise de desempenho em ambientes de baixissima latência
+                    * Análise de desempenho em ambientes com alta carga de dados
+                    * Fazer essa análise entre outros protocolos
+                    * 
+                    ---
+                    <!-- .slide: data-background="#666bfa" -->
+                    ## O que foi feito no projeto de pesquisa
+                    ---
+                    Usando o NanoSDK como cliente e o EMQX como broker foi feita a analise de desempenho
+                    ---
+                    <!-- .slide: data-background="#666bfa" -->
+                    ## Problemas encontrados
+                    ---
+                    O NanoSDK é bem confuso de entender e sua implementação do MQTT sobre o QUIC é bem inicial. Problemas como timeout de conexao com o broker eram frequentes. Tive que causar uma pequena sobrecarga de solicitações para não perder a conexão
+                    ---
+                    Não foi feita uma análise de segurança
+                    ---
+                    Testes limitados em carga e escala
+                    ---
+                    Não foi analisado o suporte a reconexao e como a multiplexacao se comporta
+                    ---
+                    Integração do QUIC com diversos protocolos de comunicação, oferecendo uma visão mais abrangente de seu papel em um ambiente de comunicação diversificado.
+
+                    ---
+                    <!-- .slide: data-background="#666bfa" -->
+                    ## Porque implementei o Dpubsub 
+                    ---
+                    Como o NanoSDK é uma junção muito grande de libs, com um desenvolvimento bem mais lento, resolvi implementar uma versão inicial do MQTT na versão 3.11 com o QoS 0.
+                    ---
+                    O ngtcp2 foi escolhido pois ela é uma lib muito completa. Tendo constantes atualizações, sendo utilizada pelo projeto Curl e tendo apoio da lib Wolfssl. 
+                    ---
+                    O MSQUIC também é interesante, mas para mim ele tem uma curva de aprendizado maior pois ele usa macros relacionadas ao ambiente de desenvolvimento Windows(ele é muito bem integrado com o .NET 7 ou superior).
+                </textarea>
+            </section>
+            <section><a href="#/0">FIM</a></section>
+        </div>
+    </div>
+    
+    <script type="module" src="index.js"></script>
+</body>
+</html>

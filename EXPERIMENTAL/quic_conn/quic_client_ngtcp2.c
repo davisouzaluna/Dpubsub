@@ -1,3 +1,4 @@
+#define WOLFSSL_QUIC
 #include <ngtcp2/ngtcp2_crypto.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+
+#include <wolfssl/options.h>
+//os headers abaixo ja estao importados em:<ngtcp2/ngtcp2_crypto_wolfssl.h> mas eu estou importando de novo
+#include <wolfssl/ssl.h> 
+#include <wolfssl/quic.h>
+
 
 #define DCID_LEN 18 //LENGTH OF DCID(test)
 
@@ -99,6 +106,44 @@ void free_ngtcp2_path(ngtcp2_path *path) {
     }
 }
 
+//==================================TLS stack(nenhum ta funcionando, so poc)
+
+int my_set_encryption_secrets(WOLFSSL* ssl, WOLFSSL_ENCRYPTION_LEVEL level,
+    const uint8_t* read_secret,
+    const uint8_t* write_secret,
+    size_t secret_len) {
+printf("Setting encryption secrets for level %d\n", level);
+
+if (read_secret) {
+printf("Read secret set.\n");
+}
+if (write_secret) {
+printf("Write secret set.\n");
+}
+
+return WOLFSSL_SUCCESS;
+}
+
+/* Callback para adicionar dados de handshake ao QUIC */
+int my_add_handshake_data(WOLFSSL* ssl, WOLFSSL_ENCRYPTION_LEVEL level,
+const uint8_t* data, size_t len) {
+printf("Adding handshake data for level %d, length: %zu\n", level, len);
+return WOLFSSL_SUCCESS;
+}
+
+/* Callback para limpar pacotes armazenados em buffer */
+int my_flush_flight(WOLFSSL* ssl) {
+printf("Flushing flight (sending buffered handshake packets)\n");
+return WOLFSSL_SUCCESS;
+}
+
+/* Callback para enviar um alerta TLS no QUIC */
+int my_send_alert(WOLFSSL* ssl, WOLFSSL_ENCRYPTION_LEVEL level,
+uint8_t alert) {
+printf("Sending QUIC alert (level %d): %d\n", level, alert);
+return WOLFSSL_SUCCESS;
+}
+//==================================
 
 
 void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
@@ -210,6 +255,22 @@ int main(){
         return EXIT_FAILURE;
     }
 
+    //=====================================================configuracao do metodo QUIC
+    const WOLFSSL_QUIC_METHOD quic_method = {
+        .set_encryption_secrets = my_set_encryption_secrets,
+        .add_handshake_data = my_add_handshake_data,
+        .flush_flight = my_flush_flight,
+        .send_alert = my_send_alert
+    };
+    if(wolfSSL_CTX_set_quic_method(ctx, &quic_method)!=WOLFSSL_SUCCESS){
+        fprintf(stderr, "Erro ao configurar o metodo QUIC\n");
+        return EXIT_FAILURE;
+    }
+    else{
+        printf("Metodo QUIC configurado com sucesso!\n");
+    }
+
+    
     /*
     TODO: function wolfSSL_CTX_set_quic_method 
     https://www.wolfssl.com/documentation/manuals/wolfssl/wolfSSL-Manual.pdf
