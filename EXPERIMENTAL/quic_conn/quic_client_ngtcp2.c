@@ -17,7 +17,36 @@
 
 #define DCID_LEN 18 //LENGTH OF DCID(test)
 
-
+//cria e aloca com o ngtcp2(api) o contexto ssl do cliente
+void create_wssl_init_api(WOLFSSL_CTX* ctx,WOLFSSL_QUIC_METHOD quic_method){
+    wolfSSL_Init();
+    if((ctx = wolfSSL_CTX_new(wolfTLSv1_3_client_method())) == NULL){
+        fprintf(stderr, "Erro ao criar o contexto do cliente\n");
+        return;
+    }
+    if(wolfSSL_CTX_set_quic_method(ctx, &quic_method)!=WOLFSSL_SUCCESS){
+        fprintf(stderr, "Erro ao configurar o metodo QUIC\n");
+        return;
+    }
+    else{
+        printf("Metodo QUIC configurado com sucesso!\n");
+    }
+    //ngtcp2 API
+    if(ngtcp2_crypto_wolfssl_configure_client_context(ctx)!=0){
+        fprintf(stderr, "Erro ao configurar o contexto do cliente\n");
+        return;
+    }
+    //CA
+    if (wolfSSL_CTX_load_verify_locations(ctx,"../cert/server.crt",0) !=
+    SSL_SUCCESS) {
+    fprintf(stderr, "Error loading cert/server.crt, please check"
+    "the file. :/\n");
+    exit(EXIT_FAILURE);
+    }
+    else{
+        printf("Certificado carregado com sucesso!\n");
+    }
+}
 void custom_ngtcp2_rand(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *rand_ctx) {
     (void) rand_ctx;
     //srand((unsigned int)time(NULL)); caso queira inicializar
@@ -248,49 +277,23 @@ int main(){
 
     //=====================================================criacao de um ctx pra conexao TLS
     WOLFSSL_CTX* ctx;
-    wolfSSL_Init();
-    printf("debug1\n");
-    if((ctx = wolfSSL_CTX_new(wolfTLSv1_3_client_method())) == NULL){
-        fprintf(stderr, "Erro ao criar o contexto do cliente\n");
-        return EXIT_FAILURE;
-    }
-
-    //=====================================================configuracao do metodo QUIC
     const WOLFSSL_QUIC_METHOD quic_method = {
         .set_encryption_secrets = my_set_encryption_secrets,
         .add_handshake_data = my_add_handshake_data,
         .flush_flight = my_flush_flight,
         .send_alert = my_send_alert
     };
-    if(wolfSSL_CTX_set_quic_method(ctx, &quic_method)!=WOLFSSL_SUCCESS){
-        fprintf(stderr, "Erro ao configurar o metodo QUIC\n");
-        return EXIT_FAILURE;
-    }
-    else{
-        printf("Metodo QUIC configurado com sucesso!\n");
-    }
+    //alocando esse ctx
+    create_wssl_init_api(ctx,quic_method);
 
-    
     /*
     TODO: function wolfSSL_CTX_set_quic_method 
     https://www.wolfssl.com/documentation/manuals/wolfssl/wolfSSL-Manual.pdf
     page 1216
     */
-    printf("debug2\n");
-    //==================================configuracao dos CA(teste)
-    if (wolfSSL_CTX_load_verify_locations(ctx,"../cert/server.crt",0) !=
-    SSL_SUCCESS) {
-    fprintf(stderr, "Error loading cert/server.crt, please check"
-    "the file. :/\n");
-    exit(EXIT_FAILURE);
-    }
-    printf("debug3\n");\
-
-    //=====================================utilizando a api crypto do ngtcp2 pra nn precisar derivar e instalar as chaves(com qualquer lib SSL)
-    if(ngtcp2_crypto_wolfssl_configure_client_context(ctx)!=0){
-        fprintf(stderr, "Erro ao configurar o contexto do cliente\n");
-        return EXIT_FAILURE;
-    }
+   
+    
+    //criacao de uma stream
 
 
     //=====================================================
