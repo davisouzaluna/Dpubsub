@@ -18,6 +18,9 @@
         "ev.h": "c",
         "config.h": "c",
         "ngtcp2_crypto_quictls.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "inet.h": "c",
+        "ngtcp2.h": "c",
+        "time.h": "c"
     }
 }

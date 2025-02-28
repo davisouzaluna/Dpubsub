@@ -46,6 +46,10 @@ void create_wssl_init_api(WOLFSSL_CTX* ctx,WOLFSSL_QUIC_METHOD quic_method){
     else{
         printf("Certificado carregado com sucesso!\n");
     }
+
+    /*
+    TODO: criar funcao para desalocar esses recursos, ou chamar no final da main
+    */
 }
 void custom_ngtcp2_rand(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *rand_ctx) {
     (void) rand_ctx;
