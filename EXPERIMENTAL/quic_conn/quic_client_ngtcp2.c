@@ -15,6 +15,7 @@
 #include <wolfssl/quic.h>
 
 
+
 #define DCID_LEN 18 //LENGTH OF DCID(test)
 
 //cria e aloca com o ngtcp2(api) o contexto ssl do cliente
@@ -194,6 +195,14 @@ void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
     callback->delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb;
     callback->get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb;
     callback->version_negotiation = ngtcp2_crypto_version_negotiation_cb;
+    callback->update_key = ngtcp2_crypto_update_key_cb;
+}
+
+//hora atual, pra alocar pro tipo ngtcp2_tstamp, que eh um uint64_t
+ngtcp2_tstamp timestamp_now() {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return (ngtcp2_tstamp)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 }
 
 int main(){
@@ -298,7 +307,16 @@ int main(){
    
     
     //criacao de uma stream
-
+    //buffer pro pkt
+    uint8_t buffer[1500];
+    ngtcp2_ssize write_pkt;
+    ngtcp2_tstamp ts = timestamp_now();
+    write_pkt = ngtcp2_conn_write_pkt(conn,path,NGTCP2_ECN_NOT_ECT,buffer,sizeof(buffer),ts);
+    if (write_pkt < 0) {
+        fprintf(stderr, "Erro ao escrever pacote: %zd\n", write_pkt);
+        return EXIT_FAILURE;
+    }
+    printf("Pacote escrito com sucesso!\n");
 
     //=====================================================
     free_ngtcp2_path(path);
