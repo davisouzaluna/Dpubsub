@@ -1,4 +1,5 @@
 #define WOLFSSL_QUIC
+#define _POSIX_C_SOURCE 200809L
 #include <ngtcp2/ngtcp2_crypto.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,8 @@
 //os headers abaixo ja estao importados em:<ngtcp2/ngtcp2_crypto_wolfssl.h> mas eu estou importando de novo
 #include <wolfssl/ssl.h> 
 #include <wolfssl/quic.h>
+
+#define MAX_SECRET_LEN 64
 
 
 
@@ -36,6 +39,8 @@ void create_wssl_init_api(WOLFSSL_CTX* ctx,WOLFSSL_QUIC_METHOD quic_method){
     if(ngtcp2_crypto_wolfssl_configure_client_context(ctx)!=0){
         fprintf(stderr, "Erro ao configurar o contexto do cliente\n");
         return;
+    }else{
+        printf("Contexto do cliente configurado com sucesso!\n");
     }
     //CA
     if (wolfSSL_CTX_load_verify_locations(ctx,"../cert/server.crt",0) !=
@@ -201,7 +206,7 @@ void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
 //hora atual, pra alocar pro tipo ngtcp2_tstamp, que eh um uint64_t
 ngtcp2_tstamp timestamp_now() {
     struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
     return (ngtcp2_tstamp)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 }
 
@@ -308,16 +313,59 @@ int main(){
     
     //criacao de uma stream
     //buffer pro pkt
-    uint8_t buffer[1500];
+    printf("Tamanho maximo do payload: %zu\n", settings.max_tx_udp_payload_size);
+    size_t buffer_len = settings.max_tx_udp_payload_size;
+    printf("Tamanho do buffer: %zu\n", buffer_len);
+    uint8_t buffer[buffer_len];
+    printf("Tamanho do buffer: %zu\n", sizeof(buffer));
+    ngtcp2_vec data_vec;
+    printf("Tamanho do buffer da estrutura do tipo ngtcp2_vec: %zu\n", sizeof(data_vec));
+    uint32_t flags = 0;
+    //teste das funcoes
     ngtcp2_ssize write_pkt;
+    
+    ngtcp2_ssize ngtcp2_conn_writev_stream_fn;
+    //=====================================================
     ngtcp2_tstamp ts = timestamp_now();
-    write_pkt = ngtcp2_conn_write_pkt(conn,path,NGTCP2_ECN_NOT_ECT,buffer,sizeof(buffer),ts);
-    if (write_pkt < 0) {
-        fprintf(stderr, "Erro ao escrever pacote: %zd\n", write_pkt);
+   
+    ngtcp2_pkt_info *pkt_info = malloc(sizeof(ngtcp2_pkt_info));
+    memset(pkt_info, 0, sizeof(pkt_info));
+    pkt_info->ecn = NGTCP2_ECN_NOT_ECT;
+
+
+    printf("criando stream...\n");
+    
+    int64_t pstream_id;
+    
+    typedef struct {
+        int id;
+        char buffer[1024];
+    } stream_context;
+    
+    stream_context ctx_teste;
+    ctx_teste.id = 123;
+    strcpy(ctx_teste.buffer, "Mensagem de teste");
+
+    params.initial_max_stream_data_bidi_local = (uint64_t)100;
+    params.initial_max_stream_data_bidi_remote = (uint64_t)100;
+    int stream_id = ngtcp2_conn_open_bidi_stream(conn,&pstream_id,&ctx_teste);
+    
+    if (stream_id < 0) {
+        printf("stream_id: %d\n", stream_id);
+        fprintf(stderr, "Erro ao abrir stream: %d,(%s)\n", stream_id, ngtcp2_strerror((int)stream_id));
         return EXIT_FAILURE;
     }
-    printf("Pacote escrito com sucesso!\n");
-
+    //=====================================================
+    printf("Enviando dados...\n");
+    
+    ngtcp2_ssize result = ngtcp2_conn_writev_stream(conn,path,pkt_info,buffer,sizeof(buffer),NULL,flags,0,&data_vec,1,ts);
+    if (result < 0) {
+        fprintf(stderr, "Erro ao escrever stream: %zd (%s)\n", result, ngtcp2_strerror((int)result));
+        free(path);
+        return EXIT_FAILURE;
+    }
+    printf("Dados enviados: %zd bytes\n", ngtcp2_conn_writev_stream_fn);
+    
     //=====================================================
     free_ngtcp2_path(path);
     ngtcp2_conn_del(conn);
