@@ -227,6 +227,28 @@ int main(){
     client_chosen_version = NGTCP2_PROTO_VER_V1;
     ngtcp2_transport_params_default(&params);
 
+    //=======================Alocando outros parametros pra conexao
+    params.initial_max_stream_data_bidi_local = 65536;
+    params.initial_max_stream_data_bidi_remote = 65536;
+    params.initial_max_stream_data_uni = 65536;
+    params.initial_max_data = 1048576;
+    params.initial_max_streams_bidi = 200;
+    params.initial_max_streams_uni = 100;
+    params.max_idle_timeout = 30000;
+    params.max_udp_payload_size = 1350;
+    params.active_connection_id_limit = 4;
+    params.ack_delay_exponent = 3;
+    params.max_ack_delay = 25;
+    params.max_datagram_frame_size = 1350;
+    params.disable_active_migration = 1;
+    params.grease_quic_bit = 1;
+
+    params.original_dcid_present = 0;
+    params.initial_scid_present = 0;
+    params.retry_scid_present = 0;
+    params.preferred_addr_present = 0;
+    params.stateless_reset_token_present = 0;
+//=================================================================================
     int cliente;
     ngtcp2_cid dcid, scid;
     ngtcp2_path *path = init_ngtcp2_path("127.0.0.1", 12345, "127.0.0.1", 12346);
@@ -346,11 +368,9 @@ int main(){
     ctx_teste.id = 123;
     strcpy(ctx_teste.buffer, "Mensagem de teste");
 
-    params.initial_max_stream_data_bidi_local = (uint64_t)100;
-    params.initial_max_stream_data_bidi_remote = (uint64_t)100;
     int stream_id = ngtcp2_conn_open_bidi_stream(conn,&pstream_id,&ctx_teste);
     
-    if (stream_id < 0) {
+    if (stream_id<0) {
         printf("stream_id: %d\n", stream_id);
         fprintf(stderr, "Erro ao abrir stream: %d,(%s)\n", stream_id, ngtcp2_strerror((int)stream_id));
         return EXIT_FAILURE;

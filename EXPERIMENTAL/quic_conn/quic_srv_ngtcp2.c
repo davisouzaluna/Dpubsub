@@ -1,5 +1,6 @@
 #define WOLFSSL_QUIC
 #include <ngtcp2/ngtcp2_crypto.h>
+#include <signal.h>
 #include <ngtcp2/ngtcp2_crypto_wolfssl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,16 @@
 
 
 #define DCID_LEN 18 //LENGTH OF DCID(test)
+
+//Embaixo temos a funcao que vai tratar o sinal de interrupcao
+volatile sig_atomic_t stop = 0;
+
+void signal_handler(int signo) {
+    if (signo == SIGINT) {
+        printf("\nCtrl+C detectado. Encerrando o programa...\n");
+        stop = 1;
+    }
+}
 
 //cria e aloca com o ngtcp2(api) o contexto ssl do cliente
 void create_wssl_init_api(WOLFSSL_CTX* ctx,WOLFSSL_QUIC_METHOD quic_method){
@@ -237,6 +248,11 @@ int main(){
     }
     printf("Server QUIC criada com sucesso!\n");
 
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
+        fprintf(stderr, "Erro ao configurar o sinal SIGINT\n");
+        return EXIT_FAILURE;
+    }
+
     /*
     ======================================================
     
@@ -282,6 +298,8 @@ int main(){
     }
     server_conn_ref->get_conn = my_get_conn;//Alocando a conexao do srv para o cb
 
+    server_conn_ref->user_data = conn;
+
     ngtcp2_conn *retrieved_conn = server_conn_ref->get_conn(server_conn_ref);
     printf("Conexão recuperada(endereco da memoria): %p\n", (void *)retrieved_conn);
 
@@ -294,6 +312,8 @@ int main(){
     };
     //alocando esse ctx
     create_wssl_init_api(ctx,quic_method);
+
+
 
     free_ngtcp2_path(path);
     ngtcp2_conn_del(conn);
