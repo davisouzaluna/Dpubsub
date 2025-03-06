@@ -313,9 +313,10 @@ int main(){
     //alocando esse ctx
     create_wssl_init_api(ctx,quic_method);
 
-
+    
 
     free_ngtcp2_path(path);
+    free(server_conn_ref);
     ngtcp2_conn_del(conn);
    
 
