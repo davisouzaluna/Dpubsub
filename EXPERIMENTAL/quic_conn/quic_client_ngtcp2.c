@@ -388,6 +388,7 @@ int main(){
     
     //=====================================================
     free_ngtcp2_path(path);
+    free(client_conn_ref);
     ngtcp2_conn_del(conn);
     return EXIT_SUCCESS;
 }

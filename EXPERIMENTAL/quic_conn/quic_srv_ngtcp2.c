@@ -310,11 +310,26 @@ int main(){
         .flush_flight = my_flush_flight,
         .send_alert = my_send_alert
     };
+
     //alocando esse ctx
     create_wssl_init_api(ctx,quic_method);
 
-    
 
+    //=====================================================teste(nao funcional)
+    uint8_t pacote[2048];
+    ngtcp2_pkt_info pi;
+    ngtcp2_tstamp ts = 0; // timestamp de exemplo
+    ssize_t pacotelen = recvfrom(socket_fd, pacote, sizeof(pacote), 0, (struct sockaddr *)&remote_addr, &addr_len);
+    if (pacotelen > 0) {
+        int read_pkt_result = ngtcp2_conn_read_pkt(conn, path, &pi, pacote, pacotelen, ts);
+        if (read_pkt_result != 0) {
+            fprintf(stderr, "Erro ao ler pacote: %d\n", read_pkt_result);
+        } else {
+            printf("Pacote lido com sucesso!\n");
+        }
+    }
+
+    //=====================================================
     free_ngtcp2_path(path);
     free(server_conn_ref);
     ngtcp2_conn_del(conn);
