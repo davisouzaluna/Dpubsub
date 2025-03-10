@@ -8,6 +8,7 @@
 #include <ngtcp2/ngtcp2_crypto_wolfssl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 #include <string.h>
 
 #include <wolfssl/options.h>
@@ -203,6 +204,67 @@ void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
     callback->update_key = ngtcp2_crypto_update_key_cb;
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PORT 12345
+#define TIMEOUT_SEC 2
+
+int establish_udp_connection(const char *server_ip, int server_port) {
+    int sockfd;
+    struct sockaddr_in server_addr;
+    char buffer[1024];
+    socklen_t addr_len = sizeof(server_addr);
+    
+    // Criar socket UDP
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("Erro ao criar socket UDP");
+        return -1;
+    }
+
+    // Configurar endereço do servidor
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(server_port);
+    inet_pton(AF_INET, server_ip, &server_addr.sin_addr);
+
+    // Mensagem de teste antes da conexão QUIC
+    const char *msg = "Hello UDP";
+    if (sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Erro ao enviar mensagem UDP");
+        close(sockfd);
+        return -1;
+    }
+
+    printf("Mensagem UDP enviada para %s:%d\n", server_ip, server_port);
+
+    // Configurar timeout para receber resposta
+    struct timeval timeout;
+    timeout.tv_sec = TIMEOUT_SEC;
+    timeout.tv_usec = 0;
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    // Aguardar resposta do servidor
+    int recv_len = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr *)&server_addr, &addr_len);
+    if (recv_len < 0) {
+        perror("Nenhuma resposta do servidor UDP");
+        close(sockfd);
+        return -1;
+    }
+
+    buffer[recv_len] = '\0'; // Terminar a string recebida
+    printf("Resposta do servidor UDP: %s\n", buffer);
+
+    close(sockfd);
+    return 0;
+}
+
+
 //hora atual, pra alocar pro tipo ngtcp2_tstamp, que eh um uint64_t
 ngtcp2_tstamp timestamp_now() {
     struct timespec ts;
@@ -267,6 +329,7 @@ int main(){
         fprintf(stderr, "Erro ao criar conexão: %d\n", cliente);
         return EXIT_FAILURE;
     }
+
     printf("Client QUIC criada com sucesso!\n");
     printf("Endereco de memoria da conexao QUIC: %p\n", (void *)conn);
     /*
@@ -290,10 +353,6 @@ int main(){
     struct sockaddr_in *local_addr = (struct sockaddr_in *)path->local.addr;
     
     printf("Endereço local: %s:%d\n", inet_ntoa(local_addr->sin_addr), ntohs(local_addr->sin_port));
-    
-    struct sockaddr_in *remote_addr = (struct sockaddr_in *)path->remote.addr;
-    //==================================================================================================
-    printf("Endereço remoto: %s:%d\n", inet_ntoa(remote_addr->sin_addr), ntohs(remote_addr->sin_port));
 
     printf("Versão escolhida do cliente: 0x%08x\n", client_chosen_version);
     printf("Resultado da criação da conexão: %d\n", cliente);
@@ -367,7 +426,15 @@ int main(){
     stream_context ctx_teste;
     ctx_teste.id = 123;
     strcpy(ctx_teste.buffer, "Mensagem de teste");
+    
+    struct sockaddr_in *remote_addr = (struct sockaddr_in *)path->remote.addr;
+    char server_ip[INET_ADDRSTRLEN];
 
+    inet_ntop(AF_INET, &(remote_addr->sin_addr), server_ip, INET_ADDRSTRLEN);
+    int server_port = ntohs(remote_addr->sin_port);
+
+    printf("Endereço remoto: %s:%d\n", server_ip, server_port);
+    /*
     int stream_id = ngtcp2_conn_open_bidi_stream(conn,&pstream_id,&ctx_teste);
     
     if (stream_id<0) {
@@ -377,7 +444,12 @@ int main(){
     }
     //=====================================================
     printf("Enviando dados...\n");
-    
+    if (establish_udp_connection(server_ip, server_port) < 0) {
+        fprintf(stderr, "Falha ao estabelecer conexão UDP\n");
+        return EXIT_FAILURE;
+    }
+
+    */
     ngtcp2_ssize result = ngtcp2_conn_writev_stream(conn,path,pkt_info,buffer,sizeof(buffer),NULL,flags,0,&data_vec,1,ts);
     if (result < 0) {
         fprintf(stderr, "Erro ao escrever stream: %zd (%s)\n", result, ngtcp2_strerror((int)result));

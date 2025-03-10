@@ -230,7 +230,7 @@ int main(){
     int srv;
     ngtcp2_cid dcid, scid;
     ngtcp2_path *path;
-    path = init_ngtcp2_path("127.0.0.1", 12345, "127.0.0.1", 12346);
+    path = init_ngtcp2_path("127.0.0.1", 12346, "127.0.0.1", 12345);
 
     generate_cid(&dcid, DCID_LEN);
     generate_cid(&scid, DCID_LEN);
@@ -282,7 +282,7 @@ int main(){
     printf("\nVersão escolhida do srv: 0x%08x\n", client_chosen_version);
     printf("Resultado da criação da conexão: %d\n", srv);
 
-    char *algorithm;
+    char *algorithm = "UNKNOWN";
     if(settings.cc_algo == 1){
         algorithm = "CUBIC";
     }
@@ -293,7 +293,6 @@ int main(){
     ngtcp2_crypto_conn_ref *server_conn_ref = malloc(sizeof(ngtcp2_crypto_conn_ref));
     if (!server_conn_ref) {
         fprintf(stderr, "Falha ao alocar memória para server_conn_ref\n");
-        free(server_conn_ref);
         return EXIT_FAILURE;
     }
     server_conn_ref->get_conn = my_get_conn;//Alocando a conexao do srv para o cb
@@ -316,19 +315,54 @@ int main(){
 
 
     //=====================================================teste(nao funcional)
+    ngtcp2_tstamp ts = 0; // timestamp de exemplo
+    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socket_fd < 0) {
+        perror("Erro ao criar socket");
+        return EXIT_FAILURE;
+    }
+    
+    // Configurar endereço do servidor para bind
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Ou inet_addr("127.0.0.1") se for local
+    server_addr.sin_port = htons(ntohs(local_addr->sin_port)); // Mesma porta usada pelo QUIC
+    
+    // bind
+    if (bind(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Erro ao fazer bind no socket");
+        close(socket_fd);
+        return EXIT_FAILURE;
+    }
+    
+    // Buffer para armazenar o pacote recebido
     uint8_t pacote[2048];
     ngtcp2_pkt_info pi;
-    ngtcp2_tstamp ts = 0; // timestamp de exemplo
-    ssize_t pacotelen = recvfrom(socket_fd, pacote, sizeof(pacote), 0, (struct sockaddr *)&remote_addr, &addr_len);
-    if (pacotelen > 0) {
-        int read_pkt_result = ngtcp2_conn_read_pkt(conn, path, &pi, pacote, pacotelen, ts);
-        if (read_pkt_result != 0) {
-            fprintf(stderr, "Erro ao ler pacote: %d\n", read_pkt_result);
-        } else {
-            printf("Pacote lido com sucesso!\n");
-        }
+    
+    struct sockaddr_in recv_addr;
+    socklen_t addr_len = sizeof(recv_addr);
+    
+    // Agora usamos recv_addr em vez de remote_addr
+    ssize_t pacotelen = recvfrom(socket_fd, pacote, sizeof(pacote), 0, 
+                                 (struct sockaddr *)&recv_addr, &addr_len);
+    
+    if (pacotelen < 0) {
+        perror("Erro ao receber pacote");
+        close(socket_fd);
+        return EXIT_FAILURE;
+    }
+    
+    // Processar o pacote com ngtcp2
+    int read_pkt_result = ngtcp2_conn_read_pkt(conn, path, &pi, pacote, pacotelen, ts);
+    if (read_pkt_result != 0) {
+        fprintf(stderr, "Erro ao ler pacote: %s\n", ngtcp2_strerror((int)read_pkt_result));
+    } else {
+        printf("Pacote lido com sucesso!\n");
     }
 
+    close(socket_fd);
+    
     //=====================================================
     free_ngtcp2_path(path);
     free(server_conn_ref);
