@@ -4,6 +4,8 @@
         "options.h": "c",
         "ngtcp2_crypto_wolfssl.h": "c",
         "quic.h": "c",
-        "ngtcp2_crypto.h": "c"
+        "ngtcp2_crypto.h": "c",
+        "ngtcp2.h": "c",
+        "stdio.h": "c"
     }
 }
