@@ -9,6 +9,7 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 #include <wolfssl/options.h>
 #include <wolfssl/ssl.h> 
 #include <wolfssl/quic.h>
@@ -235,7 +236,7 @@ int main(){
     generate_cid(&dcid, DCID_LEN);
     generate_cid(&scid, DCID_LEN);
 
-
+    
     params.original_dcid = dcid;
     //If is a server, this param(original_dcid) is True
     params.original_dcid_present = 1;
@@ -310,24 +311,27 @@ int main(){
         .send_alert = my_send_alert
     };
 
-    //alocando esse ctx
+    //alocando o contexto do TLS
     create_wssl_init_api(ctx,quic_method);
 
+    //Aqui embaixo tem alguem que nn esta sendo alocado
+    WOLFSSL* wssl; //ssl do cliente
+    wssl = wolfSSL_new(ctx);//iniciando...
 
     //=====================================================teste(nao funcional)
-    ngtcp2_tstamp ts = 0; // timestamp de exemplo
+    ngtcp2_tstamp ts = 0; // timestamp de exemplo(so pra nn ser null)
     int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (socket_fd < 0) {
         perror("Erro ao criar socket");
         return EXIT_FAILURE;
     }
     
-    // Configurar endereço do servidor para bind
+    
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Ou inet_addr("127.0.0.1") se for local
-    server_addr.sin_port = htons(ntohs(local_addr->sin_port)); // Mesma porta usada pelo QUIC
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
+    server_addr.sin_port = htons(ntohs(local_addr->sin_port)); 
     
     // bind
     if (bind(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -336,37 +340,90 @@ int main(){
         return EXIT_FAILURE;
     }
     
-    // Buffer para armazenar o pacote recebido
     uint8_t pacote[2048];
     ngtcp2_pkt_info pi;
     
     struct sockaddr_in recv_addr;
     socklen_t addr_len = sizeof(recv_addr);
     
-    // Agora usamos recv_addr em vez de remote_addr
-    ssize_t pacotelen = recvfrom(socket_fd, pacote, sizeof(pacote), 0, 
-                                 (struct sockaddr *)&recv_addr, &addr_len);
-    
-    if (pacotelen < 0) {
-        perror("Erro ao receber pacote");
-        close(socket_fd);
-        return EXIT_FAILURE;
-    }
-    
-    // Processar o pacote com ngtcp2
-    int read_pkt_result = ngtcp2_conn_read_pkt(conn, path, &pi, pacote, pacotelen, ts);
-    if (read_pkt_result != 0) {
-        fprintf(stderr, "Erro ao ler pacote: %s\n", ngtcp2_strerror((int)read_pkt_result));
-    } else {
-        printf("Pacote lido com sucesso!\n");
-    }
+    fd_set readfds;
 
-    close(socket_fd);
+    while (1) {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(socket_fd, &readfds);
     
-    //=====================================================
+        if (select(socket_fd + 1, &readfds, NULL, NULL, NULL) < 0) {
+            perror("Erro no select");
+            break;
+        }
+    
+        if (FD_ISSET(socket_fd, &readfds)) {
+            uint8_t pacote[2048];
+            struct sockaddr_in recv_addr;
+            socklen_t addr_len = sizeof(recv_addr);
+    
+            ssize_t pacotelen = recvfrom(socket_fd, pacote, sizeof(pacote), 0,
+                                         (struct sockaddr *)&recv_addr, &addr_len);
+            if (pacotelen < 0) {
+                perror("Erro ao receber pacote");
+                break;
+            }
+    
+            ngtcp2_path path;
+            memset(&path, 0, sizeof(path));
+            path.local.addrlen = sizeof(struct sockaddr_in);
+            path.local.addr = (struct sockaddr *)&server_addr;
+            path.remote.addrlen = addr_len;
+            path.remote.addr = (struct sockaddr *)&recv_addr;
+    
+            ngtcp2_pkt_info pi;
+            memset(&pi, 0, sizeof(pi));
+    
+            uint64_t ts = (uint64_t)time(NULL) * NGTCP2_SECONDS;
+    
+            // Processa o pacote recebido
+            int read_pkt_result = ngtcp2_conn_read_pkt(conn, &path, &pi, pacote, pacotelen, ts);
+            if (read_pkt_result < 0) {
+                fprintf(stderr, "Erro ao processar pacote QUIC: %s\n", ngtcp2_strerror(read_pkt_result));
+                break;
+            }
+    
+            // Prepara a resposta do servidor (se houver)
+            uint8_t resposta[2048];
+            ssize_t resposta_len = ngtcp2_conn_write_pkt(conn, &path, &pi, resposta, sizeof(resposta), ts);
+            if (resposta_len < 0) {
+                fprintf(stderr, "Erro ao gerar resposta QUIC: %s\n", ngtcp2_strerror(resposta_len));
+                break;
+            }
+    
+            // Envia a resposta para o cliente
+            if (resposta_len > 0) {
+                ssize_t sent = sendto(socket_fd, resposta, resposta_len, 0,
+                                      (struct sockaddr *)&recv_addr, addr_len);
+                if (sent < 0) {
+                    perror("Erro ao enviar resposta");
+                    break;
+                }
+                printf("Resposta QUIC enviada (%zd bytes)\n", sent);
+            }
+    
+            // Verifica se o handshake foi concluído
+            if (ngtcp2_conn_get_handshake_completed(conn)) {
+                printf("Handshake QUIC concluído!\n");
+                // Aqui você pode começar a processar STREAM frames ou enviar dados
+            }
+        }
+    }
+    
+    
+
+    printf("Encerrando servidor QUIC...\n");
+    close(socket_fd);
     free_ngtcp2_path(path);
-    free(server_conn_ref);
     ngtcp2_conn_del(conn);
+
+    return EXIT_SUCCESS;
    
 
     return EXIT_SUCCESS;

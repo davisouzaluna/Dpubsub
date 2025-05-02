@@ -210,8 +210,6 @@ void define_callbacks(ngtcp2_callbacks *callback, void *user_data)
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 12345
 #define TIMEOUT_SEC 2
 
 int establish_udp_connection(const char *server_ip, int server_port) {
@@ -375,15 +373,28 @@ int main(){
     printf("Conexão recuperada(endereco da memoria): %p\n", (void *)retrieved_conn);
 
     //=====================================================criacao de um ctx pra conexao TLS
-    WOLFSSL_CTX* ctx;
+    WOLFSSL_CTX *ctx;
     const WOLFSSL_QUIC_METHOD quic_method = {
         .set_encryption_secrets = my_set_encryption_secrets,
         .add_handshake_data = my_add_handshake_data,
         .flush_flight = my_flush_flight,
         .send_alert = my_send_alert
     };
+    
     //alocando esse ctx
     create_wssl_init_api(ctx,quic_method);
+    printf("Contexto do cliente criado com sucesso!\n");
+    WOLFSSL *wssl; //ssl do cliente
+    printf("Criando SSL do cliente...\n");
+    wssl = wolfSSL_new(ctx); // iniciando...
+    printf("debg");
+    if (!wssl) {
+        fprintf(stderr, "Erro ao criar WOLFSSL\n");
+        free(client_conn_ref);
+        ngtcp2_conn_del(conn);
+        return EXIT_FAILURE;
+    }
+    printf("SSL do cliente criado com sucesso!\n");
 
     /*
     TODO: function wolfSSL_CTX_set_quic_method 
@@ -416,7 +427,8 @@ int main(){
 
     printf("criando stream...\n");
     
-    int64_t pstream_id;
+
+
     
     typedef struct {
         int id;
@@ -433,24 +445,44 @@ int main(){
     inet_ntop(AF_INET, &(remote_addr->sin_addr), server_ip, INET_ADDRSTRLEN);
     int server_port = ntohs(remote_addr->sin_port);
 
-    printf("Endereço remoto: %s:%d\n", server_ip, server_port);
-    /*
-    int stream_id = ngtcp2_conn_open_bidi_stream(conn,&pstream_id,&ctx_teste);
-    
-    if (stream_id<0) {
-        printf("stream_id: %d\n", stream_id);
-        fprintf(stderr, "Erro ao abrir stream: %d,(%s)\n", stream_id, ngtcp2_strerror((int)stream_id));
-        return EXIT_FAILURE;
-    }
+    printf("Endereço remoto: %s:%d\nStream ID bloqueado", server_ip, server_port);
     //=====================================================
+    /*
     printf("Enviando dados...\n");
     if (establish_udp_connection(server_ip, server_port) < 0) {
         fprintf(stderr, "Falha ao estabelecer conexão UDP\n");
         return EXIT_FAILURE;
     }
-
     */
+    //instalando a chave TLS
+    if (wolfSSL_set_app_data(wssl, client_conn_ref) != WOLFSSL_SUCCESS)
+    {   free(client_conn_ref);
+        printf("Erro ao instalar a chave TLS\n");
+        return EXIT_FAILURE;
+    }
+    int64_t stream_id;
+int rv = ngtcp2_conn_open_bidi_stream(conn, &stream_id, NULL);
+if (rv != 0) {
+    if (rv == NGTCP2_ERR_STREAM_ID_BLOCKED) {
+        fprintf(stderr, "Stream ID bloqueado. Aguarde o peer liberar mais streams.\n");
+       
+        
+    } else if (rv == NGTCP2_ERR_NOMEM) {
+        fprintf(stderr, "Erro de memória ao abrir a stream.\n");
+        
+
+    } else {
+        fprintf(stderr, "Erro ao abrir a stream: %d\n", rv);
+     
+    }
+    return -1;
+}
+
+printf("Stream bidirecional aberta com ID: %ld\n", stream_id);
+    
     ngtcp2_ssize result = ngtcp2_conn_writev_stream(conn,path,pkt_info,buffer,sizeof(buffer),NULL,flags,0,&data_vec,1,ts);
+    
+    
     if (result < 0) {
         fprintf(stderr, "Erro ao escrever stream: %zd (%s)\n", result, ngtcp2_strerror((int)result));
         free(path);
@@ -460,6 +492,7 @@ int main(){
     
     //=====================================================
     free_ngtcp2_path(path);
+    wolfSSL_free(wssl);
     free(client_conn_ref);
     ngtcp2_conn_del(conn);
     return EXIT_SUCCESS;

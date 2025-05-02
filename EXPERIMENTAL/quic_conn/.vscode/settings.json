@@ -3,6 +3,7 @@
         "msquic.h": "c",
         "options.h": "c",
         "ngtcp2_crypto_wolfssl.h": "c",
-        "quic.h": "c"
+        "quic.h": "c",
+        "ngtcp2_crypto.h": "c"
     }
 }
